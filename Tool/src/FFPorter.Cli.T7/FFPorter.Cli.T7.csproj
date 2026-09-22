@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FFPorter.Cli</RootNamespace>
+    <AssemblyName>FFPorter.Cli.T7</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FFPorter.Cli.Shared\FFPorter.Cli.Shared.csproj" />
+    <ProjectReference Include="..\FFPorter.Core.T7\FFPorter.Core.T7.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FFPorter.Tests" />
+  </ItemGroup>
+</Project>

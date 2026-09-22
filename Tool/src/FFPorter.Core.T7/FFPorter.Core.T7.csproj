@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FFPorter.Core.T7</RootNamespace>
+    <AssemblyName>FFPorter.Core.T7</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CA2255</NoWarn>
+    <ShippedResource>FFPorter.Core.T7.Shipped.zip</ShippedResource>
+    <ShippedArchive>$(BaseIntermediateOutputPath)shipped\$(ShippedResource)</ShippedArchive>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FFPorter.Core\FFPorter.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FFPorter.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Data\Shipped\**" />
+    <ShippedData Include="Data\Shipped\**" />
+    <EmbeddedResource Include="$(ShippedArchive)" LogicalName="$(ShippedResource)" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Sdcb.FFmpeg" Version="7.0.0" />
+    <PackageReference Include="Sdcb.FFmpeg.runtime.windows-x64" Version="7.0.0" />
+  </ItemGroup>
+  <Target Name="PackShippedData" BeforeTargets="PrepareForBuild" Inputs="@(ShippedData)" Outputs="$(ShippedArchive)">
+    <MakeDir Directories="$(BaseIntermediateOutputPath)shipped" />
+    <ZipDirectory SourceDirectory="Data\Shipped" DestinationFile="$(ShippedArchive)" Overwrite="true" />
+  </Target>
+</Project>

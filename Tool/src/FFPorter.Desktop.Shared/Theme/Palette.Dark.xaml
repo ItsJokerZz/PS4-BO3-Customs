@@ -1,0 +1,50 @@
+<!-- Graphite: a near-black neutral ground, white primary actions, and colour kept for the fidelity grades and status. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Color x:Key="Color.App">#0F1012</Color>
+  <Color x:Key="Color.Caption">#0B0C0E</Color>
+  <Color x:Key="Color.CaptionText">#ECECEE</Color>
+
+  <SolidColorBrush x:Key="Bg.App" Color="#0F1012"/>
+  <SolidColorBrush x:Key="Bg.Rail" Color="#0B0C0E"/>
+  <SolidColorBrush x:Key="Bg.Surface" Color="#16171A"/>
+  <SolidColorBrush x:Key="Bg.Raised" Color="#1D1E22"/>
+  <SolidColorBrush x:Key="Bg.Input" Color="#131417"/>
+  <SolidColorBrush x:Key="Bg.Hover" Color="#232429"/>
+  <SolidColorBrush x:Key="Bg.Pressed" Color="#2B2D33"/>
+  <SolidColorBrush x:Key="Bg.Selected" Color="#26282D"/>
+  <SolidColorBrush x:Key="Bg.Track" Color="#25272C"/>
+  <SolidColorBrush x:Key="Bg.Overlay" Color="#E60F1012"/>
+
+  <SolidColorBrush x:Key="Border.Subtle" Color="#1F2024"/>
+  <SolidColorBrush x:Key="Border.Default" Color="#2C2E34"/>
+  <SolidColorBrush x:Key="Border.Strong" Color="#43464E"/>
+
+  <SolidColorBrush x:Key="Text.Primary" Color="#ECECEE"/>
+  <SolidColorBrush x:Key="Text.Secondary" Color="#A6A8AF"/>
+  <SolidColorBrush x:Key="Text.Muted" Color="#6C6F77"/>
+  <SolidColorBrush x:Key="Text.Selection" Color="#5A5D66"/>
+
+  <SolidColorBrush x:Key="Accent" Color="#ECECEE"/>
+  <SolidColorBrush x:Key="Accent.Hover" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="Accent.Pressed" Color="#C9CACF"/>
+  <SolidColorBrush x:Key="Accent.Text" Color="#0F1012"/>
+  <SolidColorBrush x:Key="Progress.Fill" Color="#ECECEE"/>
+
+  <SolidColorBrush x:Key="Grade.Exact" Color="#4ADE80"/>
+  <SolidColorBrush x:Key="Grade.Strong" Color="#A3E635"/>
+  <SolidColorBrush x:Key="Grade.Good" Color="#FACC15"/>
+  <SolidColorBrush x:Key="Grade.Approximate" Color="#FB923C"/>
+  <SolidColorBrush x:Key="Grade.Weak" Color="#F87171"/>
+  <SolidColorBrush x:Key="Grade.Exact.Soft" Color="#1C4ADE80"/>
+  <SolidColorBrush x:Key="Grade.Strong.Soft" Color="#1CA3E635"/>
+  <SolidColorBrush x:Key="Grade.Good.Soft" Color="#1CFACC15"/>
+  <SolidColorBrush x:Key="Grade.Approximate.Soft" Color="#1CFB923C"/>
+  <SolidColorBrush x:Key="Grade.Weak.Soft" Color="#1CF87171"/>
+  <SolidColorBrush x:Key="Grade.None.Soft" Color="#14FFFFFF"/>
+
+  <SolidColorBrush x:Key="Status.Success" Color="#4ADE80"/>
+  <SolidColorBrush x:Key="Status.Error" Color="#F87171"/>
+  <SolidColorBrush x:Key="Status.Error.Soft" Color="#1AF87171"/>
+  <SolidColorBrush x:Key="Status.Warning" Color="#FBBF24"/>
+  <SolidColorBrush x:Key="Status.Running" Color="#ECECEE"/>
+</ResourceDictionary>

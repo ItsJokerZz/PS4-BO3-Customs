@@ -1,0 +1,47 @@
+[
+ {
+  "name": "CODE",
+  "start": 0,
+  "end": 22151168,
+  "perm": 5,
+  "file": "seg_0.bin",
+  "file_bytes": 22143444,
+  "loaded_bytes": 22143444
+ },
+ {
+  "name": "SCE_RELRO",
+  "start": 22151168,
+  "end": 23085056,
+  "perm": 4,
+  "file": "seg_1520000.bin",
+  "file_bytes": 925624,
+  "loaded_bytes": 925624
+ },
+ {
+  "name": "DATA",
+  "start": 23085056,
+  "end": 40025728,
+  "perm": 6,
+  "file": "seg_1604000.bin",
+  "file_bytes": 147008,
+  "loaded_bytes": 147008
+ },
+ {
+  "name": "SCE_DYNLIBDATA",
+  "start": 40025728,
+  "end": 41929664,
+  "perm": 4,
+  "file": "seg_262be80.bin",
+  "file_bytes": 1903936,
+  "loaded_bytes": 1903936
+ },
+ {
+  "name": "DATA",
+  "start": 41929664,
+  "end": 259693848,
+  "perm": 6,
+  "file": null,
+  "file_bytes": 0,
+  "loaded_bytes": 0
+ }
+]

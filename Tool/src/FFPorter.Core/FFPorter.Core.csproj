@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FFPorter.Core</RootNamespace>
+    <AssemblyName>FFPorter.Core</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CA2255</NoWarn>
+    <ShippedResource>FFPorter.Core.Shipped.zip</ShippedResource>
+    <ShippedArchive>$(BaseIntermediateOutputPath)shipped\$(ShippedResource)</ShippedArchive>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="FFPorter.Core.T7" />
+    <InternalsVisibleTo Include="FFPorter.Core.H1" />
+    <InternalsVisibleTo Include="FFPorter.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Data\Shipped\**" />
+    <ShippedData Include="Data\Shipped\**" />
+    <EmbeddedResource Include="$(ShippedArchive)" LogicalName="$(ShippedResource)" Visible="false" />
+  </ItemGroup>
+  <Target Name="PackShippedData" BeforeTargets="PrepareForBuild" Inputs="@(ShippedData)" Outputs="$(ShippedArchive)">
+    <MakeDir Directories="$(BaseIntermediateOutputPath)shipped" />
+    <ZipDirectory SourceDirectory="Data\Shipped" DestinationFile="$(ShippedArchive)" Overwrite="true" />
+  </Target>
+</Project>

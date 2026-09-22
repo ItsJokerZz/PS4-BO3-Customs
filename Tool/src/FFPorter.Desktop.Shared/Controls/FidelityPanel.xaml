@@ -1,0 +1,218 @@
+<UserControl x:Class="FFPorter.Desktop.Controls.FidelityPanel" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="Visible"/>
+
+    <!-- The small legend of grades under the table (and in the empty state). -->
+    <DataTemplate x:Key="LegendItem">
+      <StackPanel Orientation="Horizontal" Margin="0,0,14,0">
+        <Border Style="{StaticResource GradeFill}" Tag="{Binding}" Width="7" Height="7" CornerRadius="3.5" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding}" Style="{StaticResource Text.Caption}" Margin="6,0,0,0"/>
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid>
+    <!-- ==== nothing to show ==== -->
+    <Grid x:Name="EmptyState" Visibility="Collapsed">
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="380" Margin="24">
+        <Border Width="46" Height="46" CornerRadius="12" Background="{DynamicResource Bg.Raised}" HorizontalAlignment="Center">
+          <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE9D9;" FontSize="20" Foreground="{DynamicResource Text.Secondary}" HorizontalAlignment="Center"/>
+        </Border>
+        <TextBlock Text="Port fidelity" Style="{StaticResource Text.Heading}" FontSize="16" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+        <TextBlock x:Name="EmptyText" Style="{StaticResource Text.Body}" TextAlignment="Center" Margin="0,6,0,0"
+                   Text="Convert a map to see how faithfully each part of it carries over to PS4. The scores fill in live while it converts."/>
+        <ItemsControl x:Name="EmptyLegend" ItemTemplate="{StaticResource LegendItem}" HorizontalAlignment="Center" Margin="0,18,0,0" Focusable="False">
+          <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel HorizontalAlignment="Center"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+        </ItemsControl>
+      </StackPanel>
+    </Grid>
+
+    <!-- ==== the report ==== -->
+    <Grid x:Name="Report">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- title -->
+      <DockPanel Margin="20,16,20,0">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Map}" Style="{StaticResource Text.Caption}" Foreground="{DynamicResource Text.Secondary}"/>
+          <TextBlock Text="  ·  " Style="{StaticResource Text.Caption}"/>
+          <TextBlock Text="{Binding ElapsedText}" Style="{StaticResource Text.Caption}" Typography.NumeralAlignment="Tabular"/>
+        </StackPanel>
+        <TextBlock Text="PORT FIDELITY" Style="{StaticResource Text.Section}" VerticalAlignment="Center"/>
+      </DockPanel>
+
+      <!-- overall -->
+      <Grid Grid.Row="1" Margin="20,10,20,14">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{Binding PercentText}" Tag="{Binding ScoreGrade}" Style="{StaticResource GradeText}" FontSize="46" FontWeight="SemiBold"
+                   Typography.NumeralAlignment="Tabular" VerticalAlignment="Top" Margin="0,-6,18,0" MinWidth="96"/>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal">
+            <Border Style="{StaticResource GradePill}" Tag="{Binding ScoreGrade}" Visibility="{Binding ShowGrade, Converter={StaticResource Visible}}" Margin="0,0,8,0">
+              <TextBlock Text="{Binding Grade}" Tag="{Binding ScoreGrade}" Style="{StaticResource GradeText}" FontSize="12" FontWeight="SemiBold"/>
+            </Border>
+            <Border Style="{StaticResource Chip}">
+              <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="StateDot" Style="{StaticResource StatusDot}" Width="6" Height="6" Margin="0,1,6,0"/>
+                <TextBlock Text="{Binding StateLabel}" FontSize="11.5" Foreground="{DynamicResource Text.Secondary}"/>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <TextBlock Text="{Binding Headline}" Style="{StaticResource Text.Body}" Margin="0,7,0,0"/>
+        </StackPanel>
+      </Grid>
+
+      <!-- problems: one line, so the grades stay in view; the list only on request (every line is in the log) -->
+      <Border Grid.Row="2" Margin="20,0,20,12" Padding="12,6" CornerRadius="8" Background="{DynamicResource Status.Error.Soft}"
+              Visibility="{Binding HasProblems, Converter={StaticResource Visible}}">
+        <StackPanel>
+          <DockPanel>
+            <ToggleButton x:Name="ProblemsToggle" DockPanel.Dock="Right" Style="{StaticResource Toggle.Ghost}" Padding="8,2" MinHeight="24" FontSize="12" Content="Details" Margin="10,0,0,0"/>
+            <TextBlock DockPanel.Dock="Left" Style="{StaticResource Text.Icon}" Text="&#xE7BA;" FontSize="13" Foreground="{DynamicResource Status.Error}" Margin="0,0,10,0"/>
+            <TextBlock Text="{Binding ProblemSummary}" FontSize="12" Foreground="{DynamicResource Text.Primary}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding ProblemSummary}"/>
+          </DockPanel>
+          <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="23,6,0,2" Focusable="False"
+                        Visibility="{Binding IsChecked, ElementName=ProblemsToggle, Converter={StaticResource Visible}}">
+            <ItemsControl ItemsSource="{Binding Problems}" Focusable="False">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource Text.Secondary}" Margin="0,1"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+
+      <!-- the table -->
+      <Grid Grid.Row="3">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Border BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,1,0,1" Background="{DynamicResource Bg.Raised}" Padding="20,7">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="112"/>
+              <ColumnDefinition Width="72"/>
+              <ColumnDefinition Width="112"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="DIMENSION" Style="{StaticResource Text.Section}"/>
+            <TextBlock Grid.Column="1" Text="SCORE" Style="{StaticResource Text.Section}"/>
+            <TextBlock Grid.Column="2" Text="GRADE" Style="{StaticResource Text.Section}"/>
+            <TextBlock Grid.Column="3" Text="NOTES" Style="{StaticResource Text.Section}"/>
+          </Grid>
+        </Border>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+          <ItemsControl ItemsSource="{Binding Dimensions}" Focusable="False" Margin="0,0,0,6">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,0,0,1" Padding="20,11,20,11">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="112"/>
+                      <ColumnDefinition Width="72"/>
+                      <ColumnDefinition Width="112"/>
+                      <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" ToolTip="{Binding Description}" Background="Transparent">
+                      <TextBlock Text="{Binding Name}" Tag="{Binding Grade}" FontWeight="SemiBold" FontSize="13">
+                        <TextBlock.Style>
+                          <Style TargetType="TextBlock" BasedOn="{StaticResource GradeText}">
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding HasUnits}" Value="False"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}"/></DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </TextBlock.Style>
+                      </TextBlock>
+                      <Ellipse Width="6" Height="6" Margin="7,1,0,0" VerticalAlignment="Center" Fill="{DynamicResource Text.Primary}">
+                        <Ellipse.Style>
+                          <Style TargetType="Ellipse">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding Active}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <DataTrigger.EnterActions>
+                                  <BeginStoryboard x:Name="Blink">
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                      <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.2" Duration="0:0:0.45"/>
+                                    </Storyboard>
+                                  </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions><StopStoryboard BeginStoryboardName="Blink"/></DataTrigger.ExitActions>
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Ellipse.Style>
+                      </Ellipse>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,0,14,0">
+                      <TextBlock Text="{Binding PercentText}" FontSize="13" Foreground="{DynamicResource Text.Primary}" Typography.NumeralAlignment="Tabular"/>
+                      <Grid Height="3" Margin="0,6,0,0">
+                        <Border CornerRadius="1.5" Background="{DynamicResource Bg.Track}"/>
+                        <Border Style="{StaticResource GradeFill}" Tag="{Binding Grade}" CornerRadius="1.5" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5">
+                          <Border.RenderTransform><ScaleTransform ScaleX="{Binding ScoreFraction}"/></Border.RenderTransform>
+                        </Border>
+                      </Grid>
+                    </StackPanel>
+
+                    <Border Grid.Column="2" Style="{StaticResource GradePill}" Tag="{Binding Grade}" VerticalAlignment="Top" Margin="0,-1,0,0">
+                      <TextBlock Text="{Binding GradeLabel}" Tag="{Binding Grade}" Style="{StaticResource GradeText}" FontSize="12"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="3" VerticalAlignment="Top">
+                      <TextBlock Text="{Binding Summary}" FontSize="12.5" Foreground="{DynamicResource Text.Secondary}" TextWrapping="Wrap"
+                                 Visibility="{Binding HasSummary, Converter={StaticResource Visible}}"/>
+                      <ItemsControl ItemsSource="{Binding Notes}" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Grid Margin="0,4,0,0">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="13"/>
+                                <ColumnDefinition Width="*"/>
+                              </Grid.ColumnDefinitions>
+                              <Border Style="{StaticResource GradeFill}" Tag="{Binding Grade}" Width="5" Height="5" CornerRadius="2.5" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="1,6,0,0"/>
+                              <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" FontSize="12.5">
+                                <TextBlock.Style>
+                                  <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource Text.Primary}"/>
+                                    <Style.Triggers>
+                                      <DataTrigger Binding="{Binding Grade}" Value="info"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}"/></DataTrigger>
+                                    </Style.Triggers>
+                                  </Style>
+                                </TextBlock.Style>
+                              </TextBlock>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+
+      <!-- legend -->
+      <Border Grid.Row="4" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,1,0,0" Padding="20,9">
+        <ItemsControl x:Name="Legend" ItemTemplate="{StaticResource LegendItem}" Focusable="False">
+          <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+        </ItemsControl>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

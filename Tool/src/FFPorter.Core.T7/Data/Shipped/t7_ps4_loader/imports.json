@@ -1,0 +1,2874 @@
+[
+{
+"ea": 18982560,
+"name": "_ZdlPv"
+},
+{
+"ea": 18982576,
+"name": "strncpy"
+},
+{
+"ea": 18982592,
+"name": "_Stoul"
+},
+{
+"ea": 18982608,
+"name": "strncmp"
+},
+{
+"ea": 18982624,
+"name": "strlen"
+},
+{
+"ea": 18982640,
+"name": "strchr"
+},
+{
+"ea": 18982656,
+"name": "_Znwm"
+},
+{
+"ea": 18982672,
+"name": "sscanf"
+},
+{
+"ea": 18982688,
+"name": "_ZSt19_Xbad_function_callv"
+},
+{
+"ea": 18982704,
+"name": "fwrite"
+},
+{
+"ea": 18982720,
+"name": "fopen"
+},
+{
+"ea": 18982736,
+"name": "qsort"
+},
+{
+"ea": 18982752,
+"name": "fclose"
+},
+{
+"ea": 18982768,
+"name": "sprintf"
+},
+{
+"ea": 18982784,
+"name": "strcmp"
+},
+{
+"ea": 18982800,
+"name": "snprintf"
+},
+{
+"ea": 18982816,
+"name": "strcpy"
+},
+{
+"ea": 18982832,
+"name": "vsnprintf"
+},
+{
+"ea": 18982848,
+"name": "time"
+},
+{
+"ea": 18982864,
+"name": "strerror"
+},
+{
+"ea": 18982880,
+"name": "_Stoll"
+},
+{
+"ea": 18982896,
+"name": "__error"
+},
+{
+"ea": 18982912,
+"name": "fgetc"
+},
+{
+"ea": 18982928,
+"name": "free"
+},
+{
+"ea": 18982944,
+"name": "malloc"
+},
+{
+"ea": 18982960,
+"name": "memchr"
+},
+{
+"ea": 18982976,
+"name": "strtod"
+},
+{
+"ea": 18982992,
+"name": "localeconv"
+},
+{
+"ea": 18983008,
+"name": "calloc"
+},
+{
+"ea": 18983024,
+"name": "realloc"
+},
+{
+"ea": 18983040,
+"name": "sceKernelGetTscFrequency"
+},
+{
+"ea": 18983056,
+"name": "memalign"
+},
+{
+"ea": 18983072,
+"name": "vsprintf"
+},
+{
+"ea": 18983088,
+"name": "scePthreadMutexDestroy"
+},
+{
+"ea": 18983104,
+"name": "__cxa_atexit"
+},
+{
+"ea": 18983120,
+"name": "scePthreadSetaffinity"
+},
+{
+"ea": 18983136,
+"name": "scePthreadMutexInit"
+},
+{
+"ea": 18983152,
+"name": "scePthreadSelf"
+},
+{
+"ea": 18983168,
+"name": "scePthreadCondDestroy"
+},
+{
+"ea": 18983184,
+"name": "scePthreadAttrInit"
+},
+{
+"ea": 18983200,
+"name": "scePthreadCreate"
+},
+{
+"ea": 18983216,
+"name": "scePthreadCondBroadcast"
+},
+{
+"ea": 18983232,
+"name": "scePthreadCondInit"
+},
+{
+"ea": 18983248,
+"name": "scePthreadAttrSetstacksize"
+},
+{
+"ea": 18983264,
+"name": "scePthreadYield"
+},
+{
+"ea": 18983280,
+"name": "scePthreadMutexUnlock"
+},
+{
+"ea": 18983296,
+"name": "sceKernelReadTsc"
+},
+{
+"ea": 18983312,
+"name": "sceKernelUsleep"
+},
+{
+"ea": 18983328,
+"name": "scePthreadCondTimedwait"
+},
+{
+"ea": 18983344,
+"name": "scePthreadMutexTimedlock"
+},
+{
+"ea": 18983360,
+"name": "_FSin"
+},
+{
+"ea": 18983376,
+"name": "sqrtf"
+},
+{
+"ea": 18983392,
+"name": "fabsf"
+},
+{
+"ea": 18983408,
+"name": "atan2f"
+},
+{
+"ea": 18983424,
+"name": "expf"
+},
+{
+"ea": 18983440,
+"name": "floorf"
+},
+{
+"ea": 18983456,
+"name": "_FLog"
+},
+{
+"ea": 18983472,
+"name": "acosf"
+},
+{
+"ea": 18983488,
+"name": "tanf"
+},
+{
+"ea": 18983504,
+"name": "memcmp"
+},
+{
+"ea": 18983520,
+"name": "atanf"
+},
+{
+"ea": 18983536,
+"name": "asinf"
+},
+{
+"ea": 18983552,
+"name": "strstr"
+},
+{
+"ea": 18983568,
+"name": "_Getptolower"
+},
+{
+"ea": 18983584,
+"name": "__cxa_guard_release"
+},
+{
+"ea": 18983600,
+"name": "__cxa_guard_acquire"
+},
+{
+"ea": 18983616,
+"name": "strtok"
+},
+{
+"ea": 18983632,
+"name": "atof"
+},
+{
+"ea": 18983648,
+"name": "ceilf"
+},
+{
+"ea": 18983664,
+"name": "_Getpctype"
+},
+{
+"ea": 18983680,
+"name": "mblen"
+},
+{
+"ea": 18983696,
+"name": "_Getptoupper"
+},
+{
+"ea": 18983712,
+"name": "fmodf"
+},
+{
+"ea": 18983728,
+"name": "atan"
+},
+{
+"ea": 18983744,
+"name": "tan"
+},
+{
+"ea": 18983760,
+"name": "strrchr"
+},
+{
+"ea": 18983776,
+"name": "rand"
+},
+{
+"ea": 18983792,
+"name": "floor"
+},
+{
+"ea": 18983808,
+"name": "strcpy_s"
+},
+{
+"ea": 18983824,
+"name": "strcat"
+},
+{
+"ea": 18983840,
+"name": "fmod"
+},
+{
+"ea": 18983856,
+"name": "fabs"
+},
+{
+"ea": 18983872,
+"name": "sceVideodec2QueryComputeMemoryInfo"
+},
+{
+"ea": 18983888,
+"name": "sceVideodec2Decode"
+},
+{
+"ea": 18983904,
+"name": "sceVideodec2CreateDecoder"
+},
+{
+"ea": 18983920,
+"name": "sceVideodec2QueryDecoderMemoryInfo"
+},
+{
+"ea": 18983936,
+"name": "sceSysmoduleUnloadModule"
+},
+{
+"ea": 18983952,
+"name": "sceSysmoduleLoadModule"
+},
+{
+"ea": 18983968,
+"name": "sceVideodec2Reset"
+},
+{
+"ea": 18983984,
+"name": "sceVideodec2ReleaseComputeQueue"
+},
+{
+"ea": 18984000,
+"name": "sceVideodec2AllocateComputeQueue"
+},
+{
+"ea": 18984016,
+"name": "sceVideodec2DeleteDecoder"
+},
+{
+"ea": 18984032,
+"name": "sceAjmInstanceDestroy"
+},
+{
+"ea": 18984048,
+"name": "sceAjmInitialize"
+},
+{
+"ea": 18984064,
+"name": "sceAjmFinalize"
+},
+{
+"ea": 18984080,
+"name": "sceAjmBatchJobRunBufferRa"
+},
+{
+"ea": 18984096,
+"name": "sceAjmBatchWait"
+},
+{
+"ea": 18984112,
+"name": "sceAjmInstanceCreate"
+},
+{
+"ea": 18984128,
+"name": "sceAjmBatchStartBuffer"
+},
+{
+"ea": 18984144,
+"name": "sceAjmModuleRegister"
+},
+{
+"ea": 18984160,
+"name": "sceAjmBatchJobControlBufferRa"
+},
+{
+"ea": 18984176,
+"name": "vfprintf"
+},
+{
+"ea": 18984192,
+"name": "setjmp"
+},
+{
+"ea": 18984208,
+"name": "longjmp"
+},
+{
+"ea": 18984224,
+"name": "sceKernelWrite"
+},
+{
+"ea": 18984240,
+"name": "scePthreadAttrDestroy"
+},
+{
+"ea": 18984256,
+"name": "sceKernelUnlink"
+},
+{
+"ea": 18984272,
+"name": "sceKernelOpen"
+},
+{
+"ea": 18984288,
+"name": "sceKernelClose"
+},
+{
+"ea": 18984304,
+"name": "scePthreadAttrSetschedparam"
+},
+{
+"ea": 18984320,
+"name": "sceKernelMkdir"
+},
+{
+"ea": 18984336,
+"name": "sceKernelGetdents"
+},
+{
+"ea": 18984352,
+"name": "exp2f"
+},
+{
+"ea": 18984368,
+"name": "srand"
+},
+{
+"ea": 18984384,
+"name": "sceNetRecvfrom"
+},
+{
+"ea": 18984400,
+"name": "sceNetErrnoLoc"
+},
+{
+"ea": 18984416,
+"name": "sceNetSocket"
+},
+{
+"ea": 18984432,
+"name": "sceNetSendto"
+},
+{
+"ea": 18984448,
+"name": "sceNetSetsockopt"
+},
+{
+"ea": 18984464,
+"name": "sceNetInetPton"
+},
+{
+"ea": 18984480,
+"name": "printf"
+},
+{
+"ea": 18984496,
+"name": "fprintf"
+},
+{
+"ea": 18984512,
+"name": "sceNetCtlGetInfo"
+},
+{
+"ea": 18984528,
+"name": "__cxa_pure_virtual"
+},
+{
+"ea": 18984544,
+"name": "sqrt"
+},
+{
+"ea": 18984560,
+"name": "exp"
+},
+{
+"ea": 18984576,
+"name": "acos"
+},
+{
+"ea": 18984592,
+"name": "_Sin"
+},
+{
+"ea": 18984608,
+"name": "_Log"
+},
+{
+"ea": 18984624,
+"name": "modff"
+},
+{
+"ea": 18984640,
+"name": "_ZSt14_Xout_of_rangePKc"
+},
+{
+"ea": 18984656,
+"name": "_ZSt14_Xlength_errorPKc"
+},
+{
+"ea": 18984672,
+"name": "sceVideoOutSetFlipRate"
+},
+{
+"ea": 18984688,
+"name": "sceVideoOutGetFlipStatus"
+},
+{
+"ea": 18984704,
+"name": "sceVideoOutSetWindowModeMargins"
+},
+{
+"ea": 18984720,
+"name": "sceKernelGetDirectMemorySize"
+},
+{
+"ea": 18984736,
+"name": "sceKernelMapDirectMemory"
+},
+{
+"ea": 18984752,
+"name": "sceKernelAllocateDirectMemory"
+},
+{
+"ea": 18984768,
+"name": "sprintf_s"
+},
+{
+"ea": 18984784,
+"name": "_ZdaPv"
+},
+{
+"ea": 18984800,
+"name": "wmemcpy"
+},
+{
+"ea": 18984816,
+"name": "wmemmove"
+},
+{
+"ea": 18984832,
+"name": "wmemcmp"
+},
+{
+"ea": 18984848,
+"name": "_ZSt11_Xbad_allocv"
+},
+{
+"ea": 18984864,
+"name": "wmemset"
+},
+{
+"ea": 18984880,
+"name": "wcslen"
+},
+{
+"ea": 18984896,
+"name": "wmemchr"
+},
+{
+"ea": 18984912,
+"name": "strncpy_s"
+},
+{
+"ea": 18984928,
+"name": "sceVideoOutAddFlipEvent"
+},
+{
+"ea": 18984944,
+"name": "sceVideoOutGetResolutionStatus"
+},
+{
+"ea": 18984960,
+"name": "sceVideoOutGetDeviceCapabilityInfo_"
+},
+{
+"ea": 18984976,
+"name": "sceKernelCreateEqueue"
+},
+{
+"ea": 18984992,
+"name": "sceVideoOutOpen"
+},
+{
+"ea": 18985008,
+"name": "sceKernelWaitEqueue"
+},
+{
+"ea": 18985024,
+"name": "sceVideoOutClose"
+},
+{
+"ea": 18985040,
+"name": "sceVideoOutSubmitFlip"
+},
+{
+"ea": 18985056,
+"name": "sceVideoOutSetBufferAttribute"
+},
+{
+"ea": 18985072,
+"name": "sceVideoOutRegisterBuffers"
+},
+{
+"ea": 18985088,
+"name": "_Znam"
+},
+{
+"ea": 18985104,
+"name": "asin"
+},
+{
+"ea": 18985120,
+"name": "tanhf"
+},
+{
+"ea": 18985136,
+"name": "feof"
+},
+{
+"ea": 18985152,
+"name": "gettimeofday"
+},
+{
+"ea": 18985168,
+"name": "ungetc"
+},
+{
+"ea": 18985184,
+"name": "sceNetHtons"
+},
+{
+"ea": 18985200,
+"name": "fseek"
+},
+{
+"ea": 18985216,
+"name": "sceNetAccept"
+},
+{
+"ea": 18985232,
+"name": "sceNetEpollCreate"
+},
+{
+"ea": 18985248,
+"name": "localtime"
+},
+{
+"ea": 18985264,
+"name": "rmdir"
+},
+{
+"ea": 18985280,
+"name": "fread"
+},
+{
+"ea": 18985296,
+"name": "strcoll"
+},
+{
+"ea": 18985312,
+"name": "sceNetCtlGetState"
+},
+{
+"ea": 18985328,
+"name": "frexpf"
+},
+{
+"ea": 18985344,
+"name": "clock"
+},
+{
+"ea": 18985360,
+"name": "strtoumax"
+},
+{
+"ea": 18985376,
+"name": "getpagesize"
+},
+{
+"ea": 18985392,
+"name": "sceNetEpollWait"
+},
+{
+"ea": 18985408,
+"name": "sceNetResolverStartNtoa"
+},
+{
+"ea": 18985424,
+"name": "sceNetInit"
+},
+{
+"ea": 18985440,
+"name": "ftell"
+},
+{
+"ea": 18985456,
+"name": "rename"
+},
+{
+"ea": 18985472,
+"name": "putchar"
+},
+{
+"ea": 18985488,
+"name": "sceNetEpollControl"
+},
+{
+"ea": 18985504,
+"name": "sceNetEpollDestroy"
+},
+{
+"ea": 18985520,
+"name": "fflush"
+},
+{
+"ea": 18985536,
+"name": "sceNetSend"
+},
+{
+"ea": 18985552,
+"name": "sceNetResolverCreate"
+},
+{
+"ea": 18985568,
+"name": "freopen"
+},
+{
+"ea": 18985584,
+"name": "sceNetListen"
+},
+{
+"ea": 18985600,
+"name": "fgets"
+},
+{
+"ea": 18985616,
+"name": "sceNetResolverDestroy"
+},
+{
+"ea": 18985632,
+"name": "sceNetSocketClose"
+},
+{
+"ea": 18985648,
+"name": "mktime"
+},
+{
+"ea": 18985664,
+"name": "difftime"
+},
+{
+"ea": 18985680,
+"name": "strcspn"
+},
+{
+"ea": 18985696,
+"name": "remove"
+},
+{
+"ea": 18985712,
+"name": "strftime"
+},
+{
+"ea": 18985728,
+"name": "sceNetRecv"
+},
+{
+"ea": 18985744,
+"name": "_FSinh"
+},
+{
+"ea": 18985760,
+"name": "fgetpos"
+},
+{
+"ea": 18985776,
+"name": "exit"
+},
+{
+"ea": 18985792,
+"name": "setvbuf"
+},
+{
+"ea": 18985808,
+"name": "clearerr"
+},
+{
+"ea": 18985824,
+"name": "fscanf"
+},
+{
+"ea": 18985840,
+"name": "_FCosh"
+},
+{
+"ea": 18985856,
+"name": "mkdir"
+},
+{
+"ea": 18985872,
+"name": "ldexpf"
+},
+{
+"ea": 18985888,
+"name": "ferror"
+},
+{
+"ea": 18985904,
+"name": "setlocale"
+},
+{
+"ea": 18985920,
+"name": "sceNetShutdown"
+},
+{
+"ea": 18985936,
+"name": "sceNetBind"
+},
+{
+"ea": 18985952,
+"name": "socket"
+},
+{
+"ea": 18985968,
+"name": "send"
+},
+{
+"ea": 18985984,
+"name": "setsockopt"
+},
+{
+"ea": 18986000,
+"name": "recv"
+},
+{
+"ea": 18986016,
+"name": "accept"
+},
+{
+"ea": 18986032,
+"name": "listen"
+},
+{
+"ea": 18986048,
+"name": "bind"
+},
+{
+"ea": 18986064,
+"name": "sceKernelLseek"
+},
+{
+"ea": 18986080,
+"name": "_Stoull"
+},
+{
+"ea": 18986096,
+"name": "_ZN3sce4Json11Initializer9terminateEv"
+},
+{
+"ea": 18986112,
+"name": "_ZN3sce4Json11Initializer10initializeEPKNS0_13InitParameterE"
+},
+{
+"ea": 18986128,
+"name": "_ZN3sce4Json11InitializerD1Ev"
+},
+{
+"ea": 18986144,
+"name": "sceNpPartyInitialize"
+},
+{
+"ea": 18986160,
+"name": "_ZN3sce4Json12MemAllocatorD2Ev"
+},
+{
+"ea": 18986176,
+"name": "_ZN3sce4Json11InitializerC1Ev"
+},
+{
+"ea": 18986192,
+"name": "sceNetPoolCreate"
+},
+{
+"ea": 18986208,
+"name": "sceNpSetContentRestriction"
+},
+{
+"ea": 18986224,
+"name": "sceNetTerm"
+},
+{
+"ea": 18986240,
+"name": "_ZN3sce4Json12MemAllocatorC2Ev"
+},
+{
+"ea": 18986256,
+"name": "sceNetPoolDestroy"
+},
+{
+"ea": 18986272,
+"name": "_ZN3sce4Json12MemAllocator11notifyErrorEimPv"
+},
+{
+"ea": 18986288,
+"name": "sceNpPartyTerminate"
+},
+{
+"ea": 18986304,
+"name": "sceKernelTruncate"
+},
+{
+"ea": 18986320,
+"name": "sceKernelPread"
+},
+{
+"ea": 18986336,
+"name": "sceKernelPwrite"
+},
+{
+"ea": 18986352,
+"name": "sceKernelStat"
+},
+{
+"ea": 18986368,
+"name": "sceKernelFsync"
+},
+{
+"ea": 18986384,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_6NpUserENS1_15AppSTLAllocatorIS5_EEEE3getEv"
+},
+{
+"ea": 18986400,
+"name": "_ZN3sce7Toolkit2NP17FriendInfoRequestC1Ev"
+},
+{
+"ea": 18986416,
+"name": "_ZN3sce7Toolkit2NP7Friends9Interface14getFriendslistEPNS1_9Utilities6FutureISt6vectorINS1_6NpUserENS1_15AppSTLAllocatorIS7_EEEEEPKNS1_17FriendInfoRequestEb"
+},
+{
+"ea": 18986432,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_6NpUserENS1_15AppSTLAllocatorIS5_EEEEC1Ev"
+},
+{
+"ea": 18986448,
+"name": "_ZN3sce7Toolkit2NP9Utilities10FutureImpl5resetEv"
+},
+{
+"ea": 18986464,
+"name": "_ZNK3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_6NpUserENS1_15AppSTLAllocatorIS5_EEEE3getEv"
+},
+{
+"ea": 18986480,
+"name": "sceSharePlayGetCurrentConnectionInfoA"
+},
+{
+"ea": 18986496,
+"name": "_ZN3sce7Toolkit2NP17PlayedWithRequestC1Ev"
+},
+{
+"ea": 18986512,
+"name": "_ZN3sce7Toolkit2NP12ActivityFeed9Interface14postPlayedWithEPKNS1_17PlayedWithRequestEPNS1_9Utilities6FutureINS1_15ActivityStoryIdEEEb"
+},
+{
+"ea": 18986528,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_15ActivityStoryIdEEC1Ev"
+},
+{
+"ea": 18986544,
+"name": "sceNetCtlCheckCallback"
+},
+{
+"ea": 18986560,
+"name": "sceNpGetParentalControlInfoA"
+},
+{
+"ea": 18986576,
+"name": "sceUserServiceGetUserName"
+},
+{
+"ea": 18986592,
+"name": "sceNetCtlRegisterCallback"
+},
+{
+"ea": 18986608,
+"name": "_ZN3sce7Toolkit2NP11UserProfile9Interface20getNpUserInformationEPNS1_9Utilities6FutureINS1_6NpUserEEEPKNS1_18UserProfileRequestEb"
+},
+{
+"ea": 18986624,
+"name": "_ZN3sce7Toolkit2NP18UserProfileRequestC1Ev"
+},
+{
+"ea": 18986640,
+"name": "_ZN3sce7Toolkit2NP11UserProfile9Interface21getNpUsersInformationEPNS1_9Utilities6FutureINS1_7NpUsersEEEPKNS1_18UserProfileRequestEb"
+},
+{
+"ea": 18986656,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_18GameCustomDataItemEE3getEv"
+},
+{
+"ea": 18986672,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_18GameCustomDataItemENS1_15AppSTLAllocatorIS5_EEEE3getEv"
+},
+{
+"ea": 18986688,
+"name": "_ZNK3sce7Toolkit2NP9Utilities10FutureImpl8hasErrorEv"
+},
+{
+"ea": 18986704,
+"name": "_ZN3sce7Toolkit2NP14GameCustomData9Interface11getGameDataEPKNS1_29GameCustomDataGameDataRequestEPNS1_9Utilities6FutureINS1_17MessageAttachmentEEEb"
+},
+{
+"ea": 18986720,
+"name": "_ZNK3sce7Toolkit2NP17MessageAttachment17getAttachmentDataEv"
+},
+{
+"ea": 18986736,
+"name": "_ZNK3sce7Toolkit2NP15AppSTLAllocatorIcE8max_sizeEv"
+},
+{
+"ea": 18986752,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorIcE8allocateEmPKv"
+},
+{
+"ea": 18986768,
+"name": "_ZN3sce7Toolkit2NP26GameCustomDataItemsRequestC1Ev"
+},
+{
+"ea": 18986784,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorIcEC2Ev"
+},
+{
+"ea": 18986800,
+"name": "sceGameCustomDataDialogUpdateStatus"
+},
+{
+"ea": 18986816,
+"name": "sceRtcParseRFC3339"
+},
+{
+"ea": 18986832,
+"name": "_ZN3sce7Toolkit2NP14GameCustomData9Interface11getItemListEPKNS1_26GameCustomDataItemsRequestEPNS1_9Utilities6FutureISt6vectorINS1_18GameCustomDataItemENS1_15AppSTLAllocatorISA_EEEEEb"
+},
+{
+"ea": 18986848,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_17MessageAttachmentEE3getEv"
+},
+{
+"ea": 18986864,
+"name": "_ZN3sce7Toolkit2NP9Messaging9Interface11sendMessageEPKNS1_11MessageDataEib"
+},
+{
+"ea": 18986880,
+"name": "_ZN3sce7Toolkit2NP14GameCustomData9Interface10getMessageEPKNS1_28GameCustomDataMessageRequestEPNS1_9Utilities6FutureINS1_18GameCustomDataItemEEEb"
+},
+{
+"ea": 18986896,
+"name": "_ZN3sce7Toolkit2NP14GameCustomData9Interface17setMessageUseFlagEPKNS1_28GameCustomDataUseFlagRequestEPNS1_9Utilities6FutureIiEEb"
+},
+{
+"ea": 18986912,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureIiEC1Ev"
+},
+{
+"ea": 18986928,
+"name": "sceRtcFormatRFC2822LocalTime"
+},
+{
+"ea": 18986944,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_17MessageAttachmentEEC1Ev"
+},
+{
+"ea": 18986960,
+"name": "_ZN3sce7Toolkit2NP11MessageDataC1Ev"
+},
+{
+"ea": 18986976,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorIcE10deallocateEPcm"
+},
+{
+"ea": 18986992,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_18GameCustomDataItemENS1_15AppSTLAllocatorIS5_EEEEC1Ev"
+},
+{
+"ea": 18987008,
+"name": "_ZN3sce7Toolkit2NP29GameCustomDataGameDataRequestC1Ev"
+},
+{
+"ea": 18987024,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_18GameCustomDataItemEEC1Ev"
+},
+{
+"ea": 18987040,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureIiE3getEv"
+},
+{
+"ea": 18987056,
+"name": "_ZN3sce7Toolkit2NP28GameCustomDataMessageRequestC1Ev"
+},
+{
+"ea": 18987072,
+"name": "_ZN3sce7Toolkit2NP28GameCustomDataUseFlagRequestC1Ev"
+},
+{
+"ea": 18987088,
+"name": "sceGameCustomDataDialogGetResultA"
+},
+{
+"ea": 18987104,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorIcED2Ev"
+},
+{
+"ea": 18987120,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface7getInfoEPKNS1_16NpSessionRequestEPNS1_9Utilities6FutureINS1_28NpSessionDetailedInformationEEEb"
+},
+{
+"ea": 18987136,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_28NpSessionDetailedInformationEE3getEv"
+},
+{
+"ea": 18987152,
+"name": "_ZN3sce7Toolkit2NP13InviteMessageC1Ev"
+},
+{
+"ea": 18987168,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface6inviteEPKNS1_16NpSessionRequestEPKNS1_13InviteMessageE"
+},
+{
+"ea": 18987184,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_20NpSessionInformationENS1_15AppSTLAllocatorIS5_EEEEC1Ev"
+},
+{
+"ea": 18987200,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface6createEPKNS1_22CreateNpSessionRequestEPNS1_9Utilities6FutureINS1_20NpSessionInformationEEEb"
+},
+{
+"ea": 18987216,
+"name": "_ZNK3sce7Toolkit2NP9Utilities10FutureImpl9hasResultEv"
+},
+{
+"ea": 18987232,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface6updateEPKNS1_22UpdateNpSessionRequestEPNS1_9Utilities6FutureIiEEb"
+},
+{
+"ea": 18987248,
+"name": "_ZN3sce7Toolkit2NP22UpdateNpSessionRequestC1Ev"
+},
+{
+"ea": 18987264,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_20NpSessionInformationEE3getEv"
+},
+{
+"ea": 18987280,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_28NpSessionDetailedInformationEEC1Ev"
+},
+{
+"ea": 18987296,
+"name": "_ZN3sce7Toolkit2NP20JoinNpSessionRequestC1Ev"
+},
+{
+"ea": 18987312,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface6searchEPKNS1_22SearchNpSessionRequestEPNS1_9Utilities6FutureISt6vectorINS1_20NpSessionInformationENS1_15AppSTLAllocatorISA_EEEEEb"
+},
+{
+"ea": 18987328,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface17getInvitationInfoEPKNS1_21InvitationInfoRequestEPNS1_9Utilities6FutureINS1_23NpSessionInvitationInfoEEEb"
+},
+{
+"ea": 18987344,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_23NpSessionInvitationInfoEE3getEv"
+},
+{
+"ea": 18987360,
+"name": "_ZN3sce7Toolkit2NP22CreateNpSessionRequestC1Ev"
+},
+{
+"ea": 18987376,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface18postInvitationDataEPKNS1_25PostInvitationDataRequestEPNS1_9Utilities6FutureIiEEb"
+},
+{
+"ea": 18987392,
+"name": "_ZN3sce7Toolkit2NP16NpSessionRequestC1Ev"
+},
+{
+"ea": 18987408,
+"name": "_ZN3sce7Toolkit2NP25PostInvitationDataRequestC1Ev"
+},
+{
+"ea": 18987424,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_20NpSessionInformationEEC1Ev"
+},
+{
+"ea": 18987440,
+"name": "_ZNK3sce7Toolkit2NP9Utilities10FutureImpl8getErrorEv"
+},
+{
+"ea": 18987456,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface4joinEPKNS1_20JoinNpSessionRequestEPNS1_9Utilities6FutureINS1_20NpSessionInformationEEEb"
+},
+{
+"ea": 18987472,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_23NpSessionInvitationInfoEEC1Ev"
+},
+{
+"ea": 18987488,
+"name": "_ZN3sce7Toolkit2NP22SearchNpSessionRequestC1Ev"
+},
+{
+"ea": 18987504,
+"name": "_ZN3sce7Toolkit2NP8Sessions9Interface5leaveEPKNS1_16NpSessionRequestEPNS1_9Utilities6FutureIiEEb"
+},
+{
+"ea": 18987520,
+"name": "_ZN3sce7Toolkit2NP21InvitationInfoRequestC1Ev"
+},
+{
+"ea": 18987536,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_20NpSessionInformationENS1_15AppSTLAllocatorIS5_EEEE3getEv"
+},
+{
+"ea": 18987552,
+"name": "_ZN3sce7Toolkit2NP8Presence9Interface11getPresenceEPKNS1_15PresenceRequestEPNS1_9Utilities6FutureINS1_12PresenceInfoEEEb"
+},
+{
+"ea": 18987568,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureINS1_12PresenceInfoEEC1Ev"
+},
+{
+"ea": 18987584,
+"name": "_ZN3sce7Toolkit2NP15PresenceDetailsC1Ev"
+},
+{
+"ea": 18987600,
+"name": "_ZN3sce7Toolkit2NP8Presence9Interface11setPresenceEPKNS1_15PresenceDetailsEb"
+},
+{
+"ea": 18987616,
+"name": "_ZN3sce7Toolkit2NP15PresenceRequestC1Ev"
+},
+{
+"ea": 18987632,
+"name": "_ZSt14_Random_devicev"
+},
+{
+"ea": 18987648,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_19ProductInfoDetailedENS1_15AppSTLAllocatorIS5_EEEE3getEv"
+},
+{
+"ea": 18987664,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEE9constructEPS4_RKS4_"
+},
+{
+"ea": 18987680,
+"name": "_ZN3sce7Toolkit2NP34DetailedProductInfoListInputParamsC1Ev"
+},
+{
+"ea": 18987696,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEE7destroyEPS4_"
+},
+{
+"ea": 18987712,
+"name": "_ZN3sce7Toolkit2NP8Commerce9Interface16voucherCodeInputERKNS1_18VoucherInputParamsEb"
+},
+{
+"ea": 18987728,
+"name": "sceNpCommerceHidePsStoreIcon"
+},
+{
+"ea": 18987744,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEED2Ev"
+},
+{
+"ea": 18987760,
+"name": "_ZN3sce7Toolkit2NP34DetailedProductInfoListInputParams9ProductIdC1Ev"
+},
+{
+"ea": 18987776,
+"name": "sceNpCommerceShowPsStoreIcon"
+},
+{
+"ea": 18987792,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEE10deallocateEPS4_m"
+},
+{
+"ea": 18987808,
+"name": "_ZNK3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEE8max_sizeEv"
+},
+{
+"ea": 18987824,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEE8allocateEmPKv"
+},
+{
+"ea": 18987840,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorISt10_List_nodeIPcPvEED2Ev"
+},
+{
+"ea": 18987856,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorISt10_List_nodeIPcPvEE10deallocateEPS6_m"
+},
+{
+"ea": 18987872,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorINS1_34DetailedProductInfoListInputParams9ProductIdEEC2Ev"
+},
+{
+"ea": 18987888,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorISt10_List_nodeIPcPvEE8allocateEmPKv"
+},
+{
+"ea": 18987904,
+"name": "_ZN3sce7Toolkit2NP23DownloadListInputParamsC1Ev"
+},
+{
+"ea": 18987920,
+"name": "_ZN3sce7Toolkit2NP8Commerce9Interface26getDetailedProductInfoListEPNS1_9Utilities6FutureISt6vectorINS1_19ProductInfoDetailedENS1_15AppSTLAllocatorIS7_EEEEERKNS1_34DetailedProductInfoListInputParamsEb"
+},
+{
+"ea": 18987936,
+"name": "_ZN3sce7Toolkit2NP8Commerce9Interface13productBrowseERKNS1_19ProductBrowseParamsEb"
+},
+{
+"ea": 18987952,
+"name": "_ZN3sce7Toolkit2NP8Commerce9Interface8checkoutERNS1_19CheckoutInputParamsEb"
+},
+{
+"ea": 18987968,
+"name": "_ZN3sce7Toolkit2NP19CheckoutInputParamsC1Ev"
+},
+{
+"ea": 18987984,
+"name": "_ZN3sce7Toolkit2NP18VoucherInputParamsC1Ev"
+},
+{
+"ea": 18988000,
+"name": "_ZN3sce7Toolkit2NP15AppSTLAllocatorISt10_List_nodeIPcPvEEC2Ev"
+},
+{
+"ea": 18988016,
+"name": "_ZN3sce7Toolkit2NP19ProductBrowseParamsC1Ev"
+},
+{
+"ea": 18988032,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_19ProductInfoDetailedENS1_15AppSTLAllocatorIS5_EEEEC1Ev"
+},
+{
+"ea": 18988048,
+"name": "_ZNK3sce7Toolkit2NP15AppSTLAllocatorISt10_List_nodeIPcPvEE8max_sizeEv"
+},
+{
+"ea": 18988064,
+"name": "_ZN3sce7Toolkit2NP8Commerce9Interface19displayDownloadListERNS1_23DownloadListInputParamsEb"
+},
+{
+"ea": 18988080,
+"name": "sceNpRegisterStateCallbackA"
+},
+{
+"ea": 18988096,
+"name": "sceNpUnregisterStateCallbackA"
+},
+{
+"ea": 18988112,
+"name": "sceUserServiceTerminate"
+},
+{
+"ea": 18988128,
+"name": "sceNpPartyGetMembersA"
+},
+{
+"ea": 18988144,
+"name": "sceNpCreateRequest"
+},
+{
+"ea": 18988160,
+"name": "sceNpTrophyDestroyContext"
+},
+{
+"ea": 18988176,
+"name": "sceNpGetNpId"
+},
+{
+"ea": 18988192,
+"name": "sceNpPartyGetMemberVoiceInfo"
+},
+{
+"ea": 18988208,
+"name": "sceUserServiceGetUserColor"
+},
+{
+"ea": 18988224,
+"name": "sceUserServiceGetEvent"
+},
+{
+"ea": 18988240,
+"name": "sceNpCheckNpAvailabilityA"
+},
+{
+"ea": 18988256,
+"name": "sceUserServiceGetInitialUser"
+},
+{
+"ea": 18988272,
+"name": "sceNpGetAccountIdA"
+},
+{
+"ea": 18988288,
+"name": "sceNpGetState"
+},
+{
+"ea": 18988304,
+"name": "sceNpDeleteRequest"
+},
+{
+"ea": 18988320,
+"name": "sceNpTrophyCreateContext"
+},
+{
+"ea": 18988336,
+"name": "sceNpCheckPlus"
+},
+{
+"ea": 18988352,
+"name": "sceUserServiceInitialize"
+},
+{
+"ea": 18988368,
+"name": "sceNpPartyGetStateAsUserA"
+},
+{
+"ea": 18988384,
+"name": "sceKernelRename"
+},
+{
+"ea": 18988400,
+"name": "sceKernelRead"
+},
+{
+"ea": 18988416,
+"name": "strtol"
+},
+{
+"ea": 18988432,
+"name": "memcpy_s"
+},
+{
+"ea": 18988448,
+"name": "sceNpNotifyPlusFeature"
+},
+{
+"ea": 18988464,
+"name": "sceMsgDialogGetStatus"
+},
+{
+"ea": 18988480,
+"name": "sceNpCommerceDialogGetStatus"
+},
+{
+"ea": 18988496,
+"name": "gmtime"
+},
+{
+"ea": 18988512,
+"name": "puts"
+},
+{
+"ea": 18988528,
+"name": "sceKernelSetPrtAperture"
+},
+{
+"ea": 18988544,
+"name": "sceKernelReleaseDirectMemory"
+},
+{
+"ea": 18988560,
+"name": "sceKernelBatchMap"
+},
+{
+"ea": 18988576,
+"name": "stat"
+},
+{
+"ea": 18988592,
+"name": "_ZNSt6locale5facet9_RegisterEv"
+},
+{
+"ea": 18988608,
+"name": "_Locksyslock"
+},
+{
+"ea": 18988624,
+"name": "_ZNSt8ios_base7_AddstdEPS_"
+},
+{
+"ea": 18988640,
+"name": "sceFiosDirectoryExistsSync"
+},
+{
+"ea": 18988656,
+"name": "_ZNSt8_LocinfoD1Ev"
+},
+{
+"ea": 18988672,
+"name": "_Atomic_fetch_add_4"
+},
+{
+"ea": 18988688,
+"name": "_Atomic_fetch_sub_4"
+},
+{
+"ea": 18988704,
+"name": "_ZNSt8_LocinfoC1EPKc"
+},
+{
+"ea": 18988720,
+"name": "_ZNSt8ios_baseD2Ev"
+},
+{
+"ea": 18988736,
+"name": "_ZSt17iostream_categoryv"
+},
+{
+"ea": 18988752,
+"name": "_ZNKSt9exception6_RaiseEv"
+},
+{
+"ea": 18988768,
+"name": "strcasecmp"
+},
+{
+"ea": 18988784,
+"name": "_ZNSt6locale16_GetgloballocaleEv"
+},
+{
+"ea": 18988800,
+"name": "_Unlocksyslock"
+},
+{
+"ea": 18988816,
+"name": "_ZNSt8ios_base7failureD1Ev"
+},
+{
+"ea": 18988832,
+"name": "fputc"
+},
+{
+"ea": 18988848,
+"name": "sceKernelGetModuleList"
+},
+{
+"ea": 18988864,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_11EntitlementENS1_15AppSTLAllocatorIS5_EEEE3getEv"
+},
+{
+"ea": 18988880,
+"name": "sceAppContentGetAddcontInfoList"
+},
+{
+"ea": 18988896,
+"name": "_ZN3sce7Toolkit2NP26GetEntitlementsInputParamsC1Ev"
+},
+{
+"ea": 18988912,
+"name": "sceAppContentAddcontMount"
+},
+{
+"ea": 18988928,
+"name": "_ZN3sce7Toolkit2NP8Commerce9Interface18getEntitlementListEPNS1_9Utilities6FutureISt6vectorINS1_11EntitlementENS1_15AppSTLAllocatorIS7_EEEEERKNS1_26GetEntitlementsInputParamsEb"
+},
+{
+"ea": 18988944,
+"name": "_ZN3sce7Toolkit2NP9Utilities6FutureISt6vectorINS1_11EntitlementENS1_15AppSTLAllocatorIS5_EEEEC1Ev"
+},
+{
+"ea": 18988960,
+"name": "sceCoredumpWriteUserData"
+},
+{
+"ea": 18988976,
+"name": "sceSystemServiceParamGetString"
+},
+{
+"ea": 18988992,
+"name": "sceCoredumpRegisterCoredumpHandler"
+},
+{
+"ea": 18989008,
+"name": "scePadResetLightBar"
+},
+{
+"ea": 18989024,
+"name": "scePadOpen"
+},
+{
+"ea": 18989040,
+"name": "scePadInit"
+},
+{
+"ea": 18989056,
+"name": "scePadClose"
+},
+{
+"ea": 18989072,
+"name": "scePadSetLightBar"
+},
+{
+"ea": 18989088,
+"name": "scePadSetVibration"
+},
+{
+"ea": 18989104,
+"name": "scePadReadState"
+},
+{
+"ea": 18989120,
+"name": "scePadGetControllerInformation"
+},
+{
+"ea": 18989136,
+"name": "sceNpTrophyRegisterContext"
+},
+{
+"ea": 18989152,
+"name": "sceNpTrophyUnlockTrophy"
+},
+{
+"ea": 18989168,
+"name": "sceNpTrophyGetTrophyUnlockState"
+},
+{
+"ea": 18989184,
+"name": "sceNpTrophyDestroyHandle"
+},
+{
+"ea": 18989200,
+"name": "sceNpTrophyCreateHandle"
+},
+{
+"ea": 18989216,
+"name": "sceImeKeyboardGetInfo"
+},
+{
+"ea": 18989232,
+"name": "sceImeKeyboardOpen"
+},
+{
+"ea": 18989248,
+"name": "sceImeKeyboardGetResourceId"
+},
+{
+"ea": 18989264,
+"name": "sceImeUpdate"
+},
+{
+"ea": 18989280,
+"name": "sceImeKeyboardClose"
+},
+{
+"ea": 18989296,
+"name": "sceRtcGetTime_t"
+},
+{
+"ea": 18989312,
+"name": "sceSystemServiceParamGetInt"
+},
+{
+"ea": 18989328,
+"name": "sceSharePlayInitialize"
+},
+{
+"ea": 18989344,
+"name": "sceCommonDialogInitialize"
+},
+{
+"ea": 18989360,
+"name": "sceSystemServiceLoadExec"
+},
+{
+"ea": 18989376,
+"name": "sceSystemServiceReceiveEvent"
+},
+{
+"ea": 18989392,
+"name": "sceAppContentInitialize"
+},
+{
+"ea": 18989408,
+"name": "sceSystemServiceGetStatus"
+},
+{
+"ea": 18989424,
+"name": "scePlayGoInitialize"
+},
+{
+"ea": 18989440,
+"name": "sceRtcSetTick"
+},
+{
+"ea": 18989456,
+"name": "scePlayGoGetToDoList"
+},
+{
+"ea": 18989472,
+"name": "sceSystemServiceHideSplashScreen"
+},
+{
+"ea": 18989488,
+"name": "sceRtcGetCurrentNetworkTick"
+},
+{
+"ea": 18989504,
+"name": "scePlayGoGetProgress"
+},
+{
+"ea": 18989520,
+"name": "sceRemoteplayInitialize"
+},
+{
+"ea": 18989536,
+"name": "sceKernelGetModuleInfo"
+},
+{
+"ea": 18989552,
+"name": "sceAppContentAppParamGetInt"
+},
+{
+"ea": 18989568,
+"name": "scePlayGoGetLanguageMask"
+},
+{
+"ea": 18989584,
+"name": "sceMsgDialogUpdateStatus"
+},
+{
+"ea": 18989600,
+"name": "scePlayGoOpen"
+},
+{
+"ea": 18989616,
+"name": "scePlayGoSetLanguageMask"
+},
+{
+"ea": 18989632,
+"name": "sceSharePlaySetProhibition"
+},
+{
+"ea": 18989648,
+"name": "sceKernelAvailableFlexibleMemorySize"
+},
+{
+"ea": 18989664,
+"name": "scePlayGoSetInstallSpeed"
+},
+{
+"ea": 18989680,
+"name": "sceSystemServiceGetDisplaySafeAreaInfo"
+},
+{
+"ea": 18989696,
+"name": "scePlayGoGetLocus"
+},
+{
+"ea": 18989712,
+"name": "sceKernelIsNeoMode"
+},
+{
+"ea": 18989728,
+"name": "sceSaveDataDialogTerminate"
+},
+{
+"ea": 18989744,
+"name": "sceNpProfileDialogUpdateStatus"
+},
+{
+"ea": 18989760,
+"name": "sceNpProfileDialogTerminate"
+},
+{
+"ea": 18989776,
+"name": "sceMsgDialogInitialize"
+},
+{
+"ea": 18989792,
+"name": "sceNpCommerceDialogInitialize"
+},
+{
+"ea": 18989808,
+"name": "sceErrorDialogOpen"
+},
+{
+"ea": 18989824,
+"name": "sceSaveDataDialogInitialize"
+},
+{
+"ea": 18989840,
+"name": "sceNpProfileDialogInitialize"
+},
+{
+"ea": 18989856,
+"name": "sceGameCustomDataDialogOpenA"
+},
+{
+"ea": 18989872,
+"name": "sceErrorDialogUpdateStatus"
+},
+{
+"ea": 18989888,
+"name": "sceGameCustomDataDialogTerminate"
+},
+{
+"ea": 18989904,
+"name": "sceMsgDialogOpen"
+},
+{
+"ea": 18989920,
+"name": "sceNpCommerceDialogOpen"
+},
+{
+"ea": 18989936,
+"name": "sceErrorDialogInitialize"
+},
+{
+"ea": 18989952,
+"name": "sceSaveDataDialogOpen"
+},
+{
+"ea": 18989968,
+"name": "sceNpProfileDialogOpen"
+},
+{
+"ea": 18989984,
+"name": "sceNpProfileDialogOpenA"
+},
+{
+"ea": 18990000,
+"name": "sceGameCustomDataDialogInitialize"
+},
+{
+"ea": 18990016,
+"name": "sceNpCommerceDialogGetResult"
+},
+{
+"ea": 18990032,
+"name": "sceSaveDataDialogUpdateStatus"
+},
+{
+"ea": 18990048,
+"name": "sceMsgDialogTerminate"
+},
+{
+"ea": 18990064,
+"name": "sceNpCommerceDialogTerminate"
+},
+{
+"ea": 18990080,
+"name": "sceNpCommerceDialogUpdateStatus"
+},
+{
+"ea": 18990096,
+"name": "sceErrorDialogTerminate"
+},
+{
+"ea": 18990112,
+"name": "sceSaveDataInitialize3"
+},
+{
+"ea": 18990128,
+"name": "sceSaveDataSetParam"
+},
+{
+"ea": 18990144,
+"name": "sceSaveDataMount2"
+},
+{
+"ea": 18990160,
+"name": "sceSaveDataUmount"
+},
+{
+"ea": 18990176,
+"name": "sceSaveDataDelete"
+},
+{
+"ea": 18990192,
+"name": "sceSaveDataGetParam"
+},
+{
+"ea": 18990208,
+"name": "_ZN3sce7Toolkit2NP10ParametersC1EPFvRKNS1_5EventEEPvmPNS1_19AllocImplementationE"
+},
+{
+"ea": 18990224,
+"name": "sceNpPollAsync"
+},
+{
+"ea": 18990240,
+"name": "_ZN3sce7Toolkit2NP19AllocImplementationD2Ev"
+},
+{
+"ea": 18990256,
+"name": "sceNpCreateAsyncRequest"
+},
+{
+"ea": 18990272,
+"name": "_ZN3sce7Toolkit2NP9Interface4initERNS1_10ParametersEb"
+},
+{
+"ea": 18990288,
+"name": "sceVoiceConnectIPortToOPort"
+},
+{
+"ea": 18990304,
+"name": "sceVoiceInit"
+},
+{
+"ea": 18990320,
+"name": "sceVoiceEnd"
+},
+{
+"ea": 18990336,
+"name": "sceVoiceCreatePort"
+},
+{
+"ea": 18990352,
+"name": "sceVoiceWriteToIPort"
+},
+{
+"ea": 18990368,
+"name": "sceVoiceGetPortAttr"
+},
+{
+"ea": 18990384,
+"name": "sceVoiceReadFromOPort"
+},
+{
+"ea": 18990400,
+"name": "sceVoiceStop"
+},
+{
+"ea": 18990416,
+"name": "sceVoiceStart"
+},
+{
+"ea": 18990432,
+"name": "frexp"
+},
+{
+"ea": 18990448,
+"name": "modf"
+},
+{
+"ea": 18990464,
+"name": "abort"
+},
+{
+"ea": 18990480,
+"name": "select"
+},
+{
+"ea": 18990496,
+"name": "sceFiosOpDelete"
+},
+{
+"ea": 18990512,
+"name": "sceFiosOpGetActualCount"
+},
+{
+"ea": 18990528,
+"name": "sceFiosFHSeek"
+},
+{
+"ea": 18990544,
+"name": "sceFiosFHPreadSync"
+},
+{
+"ea": 18990560,
+"name": "sceFiosFileGetSizeSync"
+},
+{
+"ea": 18990576,
+"name": "sceFiosFHPread"
+},
+{
+"ea": 18990592,
+"name": "sceFiosFHOpenSync"
+},
+{
+"ea": 18990608,
+"name": "memcpy"
+},
+{
+"ea": 18990624,
+"name": "sceFiosFHCloseSync"
+},
+{
+"ea": 18990640,
+"name": "sceFiosTimeIntervalFromNanoseconds"
+},
+{
+"ea": 18990656,
+"name": "sceFiosOpCancel"
+},
+{
+"ea": 18990672,
+"name": "sceFiosInitialize"
+},
+{
+"ea": 18990688,
+"name": "sceFiosTimeGetCurrent"
+},
+{
+"ea": 18990704,
+"name": "scePthreadSetschedparam"
+},
+{
+"ea": 18990720,
+"name": "sceKernelWaitEventFlag"
+},
+{
+"ea": 18990736,
+"name": "sceKernelPollEventFlag"
+},
+{
+"ea": 18990752,
+"name": "scePthreadRename"
+},
+{
+"ea": 18990768,
+"name": "scePthreadAttrSetschedpolicy"
+},
+{
+"ea": 18990784,
+"name": "sceKernelSetEventFlag"
+},
+{
+"ea": 18990800,
+"name": "scePthreadAttrSetaffinity"
+},
+{
+"ea": 18990816,
+"name": "sceKernelCreateEventFlag"
+},
+{
+"ea": 18990832,
+"name": "scePthreadGetaffinity"
+},
+{
+"ea": 18990848,
+"name": "sceKernelClearEventFlag"
+},
+{
+"ea": 18990864,
+"name": "sceSystemServiceDisableMusicPlayer"
+},
+{
+"ea": 18990880,
+"name": "sceAudioOutOutput"
+},
+{
+"ea": 18990896,
+"name": "sceAudioOutOpen"
+},
+{
+"ea": 18990912,
+"name": "sceAudioOutInit"
+},
+{
+"ea": 18990928,
+"name": "sceAudioOutClose"
+},
+{
+"ea": 18990944,
+"name": "sceSystemServiceReenableMusicPlayer"
+},
+{
+"ea": 18990960,
+"name": "sceWebBrowserDialogOpen"
+},
+{
+"ea": 18990976,
+"name": "sceWebBrowserDialogClose"
+},
+{
+"ea": 18990992,
+"name": "sceWebBrowserDialogGetResult"
+},
+{
+"ea": 18991008,
+"name": "sceSystemServiceLaunchWebBrowser"
+},
+{
+"ea": 18991024,
+"name": "sceWebBrowserDialogUpdateStatus"
+},
+{
+"ea": 18991040,
+"name": "sceWebBrowserDialogTerminate"
+},
+{
+"ea": 18991056,
+"name": "sceWebBrowserDialogInitialize"
+},
+{
+"ea": 18991072,
+"name": "sceImeDialogInit"
+},
+{
+"ea": 18991088,
+"name": "sceImeDialogTerm"
+},
+{
+"ea": 18991104,
+"name": "wcsncpy"
+},
+{
+"ea": 18991120,
+"name": "sceImeDialogGetPanelSize"
+},
+{
+"ea": 18991136,
+"name": "sceImeDialogGetResult"
+},
+{
+"ea": 18991152,
+"name": "sceImeDialogAbort"
+},
+{
+"ea": 18991168,
+"name": "strspn"
+},
+{
+"ea": 18991184,
+"name": "pthread_self"
+},
+{
+"ea": 18991200,
+"name": "sched_yield"
+},
+{
+"ea": 18991216,
+"name": "bsearch"
+},
+{
+"ea": 18991232,
+"name": "_init_env"
+},
+{
+"ea": 18991248,
+"name": "atexit"
+},
+{
+"ea": 18991264,
+"name": "catchReturnFromMain"
+},
+{
+"ea": 18991280,
+"name": "memset"
+},
+{
+"ea": 18991296,
+"name": "__stack_chk_fail"
+},
+{
+"ea": 18991312,
+"name": "sceFiosDHCloseSync"
+},
+{
+"ea": 18991328,
+"name": "sceFiosDHOpen"
+},
+{
+"ea": 18991344,
+"name": "sceFiosDHOpenSync"
+},
+{
+"ea": 18991360,
+"name": "sceFiosDHReadSync"
+},
+{
+"ea": 18991376,
+"name": "sceFiosDirectoryCreate"
+},
+{
+"ea": 18991392,
+"name": "sceFiosFHReadSync"
+},
+{
+"ea": 18991408,
+"name": "sceFiosFHSyncSync"
+},
+{
+"ea": 18991424,
+"name": "sceFiosFHTell"
+},
+{
+"ea": 18991440,
+"name": "sceFiosFHWriteSync"
+},
+{
+"ea": 18991456,
+"name": "sceFiosFileDeleteSync"
+},
+{
+"ea": 18991472,
+"name": "sceFiosOpWait"
+},
+{
+"ea": 18991488,
+"name": "sceFiosStatSync"
+},
+{
+"ea": 18991504,
+"name": "sceGnmDrawIndexIndirectMulti"
+},
+{
+"ea": 18991520,
+"name": "sceGnmInsertSetMarker"
+},
+{
+"ea": 18991536,
+"name": "sceGnmDrawIndex"
+},
+{
+"ea": 18991552,
+"name": "sceGnmSetVsShader"
+},
+{
+"ea": 18991568,
+"name": "sceGnmUpdatePsShader350"
+},
+{
+"ea": 18991584,
+"name": "sceGnmSetEmbeddedVsShader"
+},
+{
+"ea": 18991600,
+"name": "sceGnmSetEsShader"
+},
+{
+"ea": 18991616,
+"name": "sceGnmInsertWaitFlipDone"
+},
+{
+"ea": 18991632,
+"name": "sceGnmSetVgtControl"
+},
+{
+"ea": 18991648,
+"name": "sceGnmUpdateVsShader"
+},
+{
+"ea": 18991664,
+"name": "sceGnmDispatchIndirect"
+},
+{
+"ea": 18991680,
+"name": "sceGnmDispatchDirect"
+},
+{
+"ea": 18991696,
+"name": "sceGnmDrawIndexOffset"
+},
+{
+"ea": 18991712,
+"name": "sceGnmDrawIndirectCountMulti"
+},
+{
+"ea": 18991728,
+"name": "sceGnmSetHsShader"
+},
+{
+"ea": 18991744,
+"name": "sceGnmDrawIndexAuto"
+},
+{
+"ea": 18991760,
+"name": "sceGnmDrawIndirect"
+},
+{
+"ea": 18991776,
+"name": "sceGnmSetLsShader"
+},
+{
+"ea": 18991792,
+"name": "sceGnmDrawInitToDefaultContextState400"
+},
+{
+"ea": 18991808,
+"name": "sceGnmSetCsShaderWithModifier"
+},
+{
+"ea": 18991824,
+"name": "sceGnmInsertPopMarker"
+},
+{
+"ea": 18991840,
+"name": "sceGnmDrawIndexMultiInstanced"
+},
+{
+"ea": 18991856,
+"name": "sceGnmDrawIndirectMulti"
+},
+{
+"ea": 18991872,
+"name": "sceGnmSetEmbeddedPsShader"
+},
+{
+"ea": 18991888,
+"name": "sceGnmDrawOpaqueAuto"
+},
+{
+"ea": 18991904,
+"name": "sceGnmUpdateHsShader"
+},
+{
+"ea": 18991920,
+"name": "sceGnmResetVgtControl"
+},
+{
+"ea": 18991936,
+"name": "sceGnmSetGsShader"
+},
+{
+"ea": 18991952,
+"name": "sceGnmSetPsShader350"
+},
+{
+"ea": 18991968,
+"name": "sceGnmDrawIndexIndirectCountMulti"
+},
+{
+"ea": 18991984,
+"name": "sceGnmDrawInitDefaultHardwareState350"
+},
+{
+"ea": 18992000,
+"name": "sceGnmUpdateGsShader"
+},
+{
+"ea": 18992016,
+"name": "sceGnmInsertPushMarker"
+},
+{
+"ea": 18992032,
+"name": "sceGnmDrawIndexIndirect"
+},
+{
+"ea": 18992048,
+"name": "sceGnmInsertPushColorMarker"
+},
+{
+"ea": 18992064,
+"name": "sceGnmInsertThreadTraceMarker"
+},
+{
+"ea": 18992080,
+"name": "sceGnmInsertSetColorMarker"
+},
+{
+"ea": 18992096,
+"name": "sceGnmLogicalCuMaskToPhysicalCuMask"
+},
+{
+"ea": 18992112,
+"name": "sceGnmUnmapComputeQueue"
+},
+{
+"ea": 18992128,
+"name": "sceGnmDisableMipStatsReport"
+},
+{
+"ea": 18992144,
+"name": "sceGnmSubmitCommandBuffersForWorkload"
+},
+{
+"ea": 18992160,
+"name": "sceGnmDeleteEqEvent"
+},
+{
+"ea": 18992176,
+"name": "sceGnmDriverCaptureInProgress"
+},
+{
+"ea": 18992192,
+"name": "sceGnmGetOffChipTessellationBufferSize"
+},
+{
+"ea": 18992208,
+"name": "sceGnmRequestMipStatsReportAndReset"
+},
+{
+"ea": 18992224,
+"name": "sceGnmDingDongForWorkload"
+},
+{
+"ea": 18992240,
+"name": "sceGnmDriverTriggerCapture"
+},
+{
+"ea": 18992256,
+"name": "sceGnmGetProtectionFaultTimeStamp"
+},
+{
+"ea": 18992272,
+"name": "sceGnmDebugHardwareStatus"
+},
+{
+"ea": 18992288,
+"name": "sceGnmGetEqEventType"
+},
+{
+"ea": 18992304,
+"name": "sceGnmGetGpuBlockStatus"
+},
+{
+"ea": 18992320,
+"name": "sceGnmGetShaderStatus"
+},
+{
+"ea": 18992336,
+"name": "sceGnmGetGpuInfoStatus"
+},
+{
+"ea": 18992352,
+"name": "sceGnmLogicalCuIndexToPhysicalCuIndex"
+},
+{
+"ea": 18992368,
+"name": "sceGnmMapComputeQueueWithPriority"
+},
+{
+"ea": 18992384,
+"name": "sceGnmSubmitDone"
+},
+{
+"ea": 18992400,
+"name": "sceGnmMapComputeQueue"
+},
+{
+"ea": 18992416,
+"name": "sceGnmAddEqEvent"
+},
+{
+"ea": 18992432,
+"name": "sceGnmSubmitCommandBuffers"
+},
+{
+"ea": 18992448,
+"name": "sceGnmRequestFlipAndSubmitDone"
+},
+{
+"ea": 18992464,
+"name": "sceGnmSetupMipStatsReport"
+},
+{
+"ea": 18992480,
+"name": "sceGnmCreateWorkloadStream"
+},
+{
+"ea": 18992496,
+"name": "sceGnmAreSubmitsAllowed"
+},
+{
+"ea": 18992512,
+"name": "sceGnmSubmitAndFlipCommandBuffersForWorkload"
+},
+{
+"ea": 18992528,
+"name": "sceGnmBeginWorkload"
+},
+{
+"ea": 18992544,
+"name": "sceGnmGetEqTimeStamp"
+},
+{
+"ea": 18992560,
+"name": "sceGnmDingDong"
+},
+{
+"ea": 18992576,
+"name": "sceGnmRequestFlipAndSubmitDoneForWorkload"
+},
+{
+"ea": 18992592,
+"name": "sceGnmDriverTraceInProgress"
+},
+{
+"ea": 18992608,
+"name": "sceGnmSetGsRingSizes"
+},
+{
+"ea": 18992624,
+"name": "sceRazorCaptureImmediate"
+},
+{
+"ea": 18992640,
+"name": "sceGnmGetShaderProgramBaseAddress"
+},
+{
+"ea": 18992656,
+"name": "sceGnmGetTheTessellationFactorRingBufferBaseAddress"
+},
+{
+"ea": 18992672,
+"name": "sceRazorIsLoaded"
+},
+{
+"ea": 18992688,
+"name": "sceGnmFlushGarlic"
+},
+{
+"ea": 18992704,
+"name": "sceGnmDestroyWorkloadStream"
+},
+{
+"ea": 18992720,
+"name": "sceGnmEndWorkload"
+},
+{
+"ea": 18992736,
+"name": "sceGnmIsUserPaEnabled"
+},
+{
+"ea": 18992752,
+"name": "sceGnmGetLastWaitedAddress"
+},
+{
+"ea": 18992768,
+"name": "sceGnmSetWaveLimitMultipliers"
+},
+{
+"ea": 18992784,
+"name": "sceGnmGetNumTcaUnits"
+},
+{
+"ea": 18992800,
+"name": "sceGnmSubmitAndFlipCommandBuffers"
+},
+{
+"ea": 18992816,
+"name": "sceGnmDispatchIndirectOnMec"
+},
+{
+"ea": 18992832,
+"name": "sceGnmDispatchInitDefaultHardwareState"
+},
+{
+"ea": 18992848,
+"name": "sceGnmInsertDingDongMarker"
+},
+{
+"ea": 18992864,
+"name": "sceHttpAbortRequest"
+},
+{
+"ea": 18992880,
+"name": "sceHttpUriParse"
+},
+{
+"ea": 18992896,
+"name": "sceHttpAddRequestHeader"
+},
+{
+"ea": 18992912,
+"name": "sceHttpCreateConnection"
+},
+{
+"ea": 18992928,
+"name": "sceHttpCreateConnectionWithURL"
+},
+{
+"ea": 18992944,
+"name": "sceHttpCreateRequest2"
+},
+{
+"ea": 18992960,
+"name": "sceHttpCreateRequestWithURL2"
+},
+{
+"ea": 18992976,
+"name": "sceHttpCreateTemplate"
+},
+{
+"ea": 18992992,
+"name": "sceHttpDeleteConnection"
+},
+{
+"ea": 18993008,
+"name": "sceHttpDeleteRequest"
+},
+{
+"ea": 18993024,
+"name": "sceHttpDeleteTemplate"
+},
+{
+"ea": 18993040,
+"name": "sceHttpsSetSslCallback"
+},
+{
+"ea": 18993056,
+"name": "sceHttpGetResponseContentLength"
+},
+{
+"ea": 18993072,
+"name": "sceHttpGetStatusCode"
+},
+{
+"ea": 18993088,
+"name": "sceHttpInit"
+},
+{
+"ea": 18993104,
+"name": "sceHttpReadData"
+},
+{
+"ea": 18993120,
+"name": "sceHttpRemoveRequestHeader"
+},
+{
+"ea": 18993136,
+"name": "sceHttpSendRequest"
+},
+{
+"ea": 18993152,
+"name": "sceHttpSetChunkedTransferEnabled"
+},
+{
+"ea": 18993168,
+"name": "sceHttpSetRequestContentLength"
+},
+{
+"ea": 18993184,
+"name": "sceHttpTerm"
+},
+{
+"ea": 18993200,
+"name": "sceNetResolverAbort"
+},
+{
+"ea": 18993216,
+"name": "sceNetConnect"
+},
+{
+"ea": 18993232,
+"name": "sceNetGetsockopt"
+},
+{
+"ea": 18993248,
+"name": "sceNetInetNtop"
+},
+{
+"ea": 18993264,
+"name": "sceNetNtohs"
+},
+{
+"ea": 18993280,
+"name": "sceNpAuthCreateAsyncRequest"
+},
+{
+"ea": 18993296,
+"name": "sceNpAuthDeleteRequest"
+},
+{
+"ea": 18993312,
+"name": "sceNpAuthGetAuthorizationCode"
+},
+{
+"ea": 18993328,
+"name": "sceNpAuthGetIdToken"
+},
+{
+"ea": 18993344,
+"name": "sceNpAuthPollAsync"
+},
+{
+"ea": 18993360,
+"name": "sceNpGetOnlineId"
+},
+{
+"ea": 18993376,
+"name": "pthread_attr_destroy"
+},
+{
+"ea": 18993392,
+"name": "pthread_attr_init"
+},
+{
+"ea": 18993408,
+"name": "pthread_attr_setdetachstate"
+},
+{
+"ea": 18993424,
+"name": "pthread_attr_setstacksize"
+},
+{
+"ea": 18993440,
+"name": "pthread_create_name_np"
+},
+{
+"ea": 18993456,
+"name": "pthread_join"
+},
+{
+"ea": 18993472,
+"name": "pthread_mutex_destroy"
+},
+{
+"ea": 18993488,
+"name": "pthread_mutex_init"
+},
+{
+"ea": 18993504,
+"name": "pthread_mutex_lock"
+},
+{
+"ea": 18993520,
+"name": "pthread_mutex_trylock"
+},
+{
+"ea": 18993536,
+"name": "pthread_mutex_unlock"
+},
+{
+"ea": 18993552,
+"name": "pthread_mutexattr_destroy"
+},
+{
+"ea": 18993568,
+"name": "pthread_mutexattr_init"
+},
+{
+"ea": 18993584,
+"name": "pthread_mutexattr_settype"
+},
+{
+"ea": 18993600,
+"name": "sceSslInit"
+},
+{
+"ea": 18993616,
+"name": "sceSslTerm"
+},
+{
+"ea": 18993632,
+"name": "__tls_get_addr"
+},
+{
+"ea": 18993648,
+"name": "powf"
+},
+{
+"ea": 18993664,
+"name": "perror"
+},
+{
+"ea": 18993680,
+"name": "memmove"
+},
+{
+"ea": 18993696,
+"name": "_Stod"
+},
+{
+"ea": 18993712,
+"name": "strncat"
+},
+{
+"ea": 18993728,
+"name": "__udivti3"
+},
+{
+"ea": 18993744,
+"name": "sceKernelGettimeofday"
+},
+{
+"ea": 18993760,
+"name": "scePthreadMutexLock"
+},
+{
+"ea": 18993776,
+"name": "scePthreadMutexattrInit"
+},
+{
+"ea": 18993792,
+"name": "scePthreadMutexattrSettype"
+},
+{
+"ea": 18993808,
+"name": "_ZSt9terminatev"
+},
+{
+"ea": 18993824,
+"name": "__cxa_allocate_exception"
+},
+{
+"ea": 18993840,
+"name": "__cxa_begin_catch"
+},
+{
+"ea": 18993856,
+"name": "__cxa_throw"
+},
+{
+"ea": 18993872,
+"name": "__gxx_personality_v0"
+},
+{
+"ea": 18993888,
+"name": "_Unwind_Resume"
+},
+{
+"ea": 18993904,
+"name": "sceKernelCreateSema"
+},
+{
+"ea": 18993920,
+"name": "sceKernelDeleteSema"
+},
+{
+"ea": 18993936,
+"name": "sceKernelPollSema"
+},
+{
+"ea": 18993952,
+"name": "sceKernelSignalSema"
+},
+{
+"ea": 18993968,
+"name": "sceKernelWaitSema"
+},
+{
+"ea": 18993984,
+"name": "scePthreadExit"
+},
+{
+"ea": 18994000,
+"name": "scePthreadCancel"
+},
+{
+"ea": 18994016,
+"name": "scePthreadJoin"
+},
+{
+"ea": 18994032,
+"name": "pow"
+}
+]

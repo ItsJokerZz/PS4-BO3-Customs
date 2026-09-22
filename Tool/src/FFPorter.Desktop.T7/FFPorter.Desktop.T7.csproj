@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <AssemblyName>PS4 .FF Porter</AssemblyName>
+    <Product>PS4 .FF Porter</Product>
+    <AssemblyTitle>PS4 .FF Porter - Black Ops III</AssemblyTitle>
+    <RootNamespace>FFPorter.Desktop</RootNamespace>
+    <StartupObject>FFPorter.Desktop.Program</StartupObject>
+    <CETCompat>false</CETCompat>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FFPorter.Desktop.Shared\FFPorter.Desktop.Shared.csproj" />
+    <ProjectReference Include="..\FFPorter.Cli.T7\FFPorter.Cli.T7.csproj" />
+  </ItemGroup>
+</Project>

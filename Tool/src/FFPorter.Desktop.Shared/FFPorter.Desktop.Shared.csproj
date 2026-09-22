@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <UseWPF>true</UseWPF>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <AssemblyName>FFPorter.Desktop.Shared</AssemblyName>
+    <RootNamespace>FFPorter.Desktop</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../FFPorter.Core/FFPorter.Core.csproj" />
+  </ItemGroup>
+</Project>

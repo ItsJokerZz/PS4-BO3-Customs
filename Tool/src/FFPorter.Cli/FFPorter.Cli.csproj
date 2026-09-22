@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FFPorter.Cli</RootNamespace>
+    <AssemblyName>ffport</AssemblyName>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <CETCompat>false</CETCompat>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FFPorter.Cli.T7\FFPorter.Cli.T7.csproj" />
+  </ItemGroup>
+</Project>

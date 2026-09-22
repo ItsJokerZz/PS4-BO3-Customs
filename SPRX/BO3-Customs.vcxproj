@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ORBIS">
+      <Configuration>Debug</Configuration>
+      <Platform>ORBIS</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ORBIS">
+      <Configuration>Release</Configuration>
+      <Platform>ORBIS</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="platform.cpp" />
+    <ClCompile Include="Detour.cpp" />
+    <ClCompile Include="HDE64.c" />
+    <ClCompile Include="png.cpp" />
+    <ClCompile Include="t7_maps.cpp" />
+    <ClCompile Include="t7_mapimages.cpp" />
+    <ClCompile Include="t7_lua.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="headers.hpp" />
+    <ClInclude Include="platform.hpp" />
+    <ClInclude Include="Detour.hpp" />
+    <ClInclude Include="HDE64.h" />
+    <ClInclude Include="Table64.h" />
+    <ClInclude Include="png.hpp" />
+    <ClInclude Include="t7_maps.hpp" />
+    <ClInclude Include="t7_mapimages.hpp" />
+    <ClInclude Include="t7_lua.hpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath12)</VCTargetsPath>
+    <ProjectGuid>{7C2A9B41-6D0E-4E31-9E36-2B5F1D8A4C77}</ProjectGuid>
+    <ProjectName>BO3-Customs</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>Clang</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>Clang</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(DebuggerFlavor)'=='ORBISDebugger'" Label="OverrideDebuggerDefaults">
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
+    <TargetExt>.prx</TargetExt>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'">
+    <TargetExt>.prx</TargetExt>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CppExceptions>false</CppExceptions>
+      <OptimizationLevel>Levelz</OptimizationLevel>
+      <CppLanguageStd>Cpp20</CppLanguageStd>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libkernel_stub_weak.a;libkernel_gen_stub_weak.a;libSceSysmodule_stub_weak.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <InfoStripping>StripSymsAndDebug</InfoStripping>
+    </Link>
+    <PostBuildEvent><Command>python.exe "$(ProjectDir)downgrade_elf.py" --sdk-version 04.500.000 "$(TargetPath)" "$(TargetPath).down"</Command></PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <OptimizationLevel>Levelz</OptimizationLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CppExceptions>false</CppExceptions>
+      <CppLanguageStd>Cpp20</CppLanguageStd>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libkernel_stub_weak.a;libkernel_gen_stub_weak.a;libSceSysmodule_stub_weak.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <InfoStripping>StripSymsAndDebug</InfoStripping>
+    </Link>
+    <PostBuildEvent><Command>python.exe "$(ProjectDir)downgrade_elf.py" --sdk-version 04.500.000 "$(TargetPath)" "$(TargetPath).down"</Command></PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
