@@ -23,7 +23,6 @@ A fastfile porter and an `.sprx` SPRX for running Black Ops III custom maps on c
   `host_tools/bin`, found through `SCE_ORBIS_SDK_DIR` - or `FFPORTER_PS4_SDK_BIN` if you keep those
   files somewhere else. Everything else it needs, the DXBC decompiler and the GNF image writer,
   ships with the tool.
-<br>
 - Without the SDK a map still converts, but its shaders cannot be built: technique sets can then
   only be reused from retail PS4 zones handed to the porter as donors, and anything the donors do
   not cover is dropped. `--no-shader-compile` is that mode on purpose.
