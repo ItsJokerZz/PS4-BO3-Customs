@@ -79,7 +79,12 @@
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <InfoStripping>StripSymsAndDebug</InfoStripping>
     </Link>
-    <PostBuildEvent><Command>python.exe "$(ProjectDir)downgrade_elf.py" --sdk-version 04.500.000 "$(TargetPath)" "$(TargetPath).down"</Command></PostBuildEvent>
+    <PostBuildEvent>
+      <Command>python.exe "$(ProjectDir)downgrade_elf.py" --verbose --sdk-version 04.500.000 "$(TargetDir)$(TargetName).prx" "$(ProjectDir)$(TargetName).prx.down"
+python.exe "$(ProjectDir)make_fself.py" "$(ProjectDir)$(TargetName).prx.down" "$(TargetDir)$(TargetName).sprx" --fw-version 0x04050000
+del "$(TargetDir)$(TargetName).prx"
+del "$(ProjectDir)$(TargetName).prx.down"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'">
     <ClCompile>
@@ -94,7 +99,12 @@
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <InfoStripping>StripSymsAndDebug</InfoStripping>
     </Link>
-    <PostBuildEvent><Command>python.exe "$(ProjectDir)downgrade_elf.py" --sdk-version 04.500.000 "$(TargetPath)" "$(TargetPath).down"</Command></PostBuildEvent>
+    <PostBuildEvent>
+      <Command>python.exe "$(ProjectDir)downgrade_elf.py" --verbose --sdk-version 04.500.000 "$(TargetDir)$(TargetName).prx" "$(ProjectDir)$(TargetName).prx.down"
+python.exe "$(ProjectDir)make_fself.py" "$(ProjectDir)$(TargetName).prx.down" "$(TargetDir)$(TargetName).sprx" --fw-version 0x04050000
+del "$(TargetDir)$(TargetName).prx"
+del "$(ProjectDir)$(TargetName).prx.down"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

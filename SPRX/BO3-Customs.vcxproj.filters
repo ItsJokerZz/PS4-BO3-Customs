@@ -54,9 +54,6 @@
     <ClInclude Include="t7_maps.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="t7_mapselect_lua.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">
