@@ -33,7 +33,10 @@ public static class T7Paths
             if (File.Exists(candidate))
                 return candidate;
         }
-        return data;
+        throw new FileNotFoundException(
+            $"The PC loader did not unpack to {segments}. It ships inside this build, so nothing needs dumping from the " +
+            "game - it is unpacked on first use. Check the application can write to its own folder, and that nothing " +
+            "removed it. A dump of your own still works through T7_PC_DUMP if you have one.", segments);
     }
 
     public static string Work(Workspace workspace) => Path.Combine(Workspace.WorkDirectory, "t7");

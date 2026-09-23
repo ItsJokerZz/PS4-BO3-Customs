@@ -193,8 +193,8 @@ public static class T7Cli
         string work = Path.Combine(T7Paths.Work(workspace), stem);
         string loader = T7Paths.Ps4Loader(workspace);
         string image = options.Value("--image") ?? T7Paths.PcImage(workspace);
-        if (!File.Exists(image))
-            throw new IOException($"The BlackOps3 PC dump was not found ({image}); pass --image");
+        if (!File.Exists(image) && !File.Exists(Path.Combine(image, "segments.json")))
+            throw new IOException($"The PC loader data is missing ({image})");
         if (!File.Exists(Path.Combine(loader, "segments.json")))
             throw new IOException($"The PS4 loader data is missing ({loader})");
         Directory.CreateDirectory(output);

@@ -10,6 +10,7 @@ public static class ToolData
     private static readonly List<(Assembly Assembly, string Resource)> Archives = [];
     private static readonly object Gate = new();
     private static bool _extracted;
+    private static bool _repaired;
 
     public static string ShippedRoot => Path.Combine(AppContext.BaseDirectory, FolderName);
 
@@ -36,6 +37,12 @@ public static class ToolData
         string extracted = Path.Combine(Extract(), native);
         if (Exists(extracted))
             return extracted;
+        if (Repair())
+        {
+            extracted = Path.Combine(Extract(), native);
+            if (Exists(extracted))
+                return extracted;
+        }
         if (workspace != null)
         {
             string packaged = Path.Combine(workspace.Root, "app", FolderName, native);
@@ -69,6 +76,26 @@ public static class ToolData
             _extracted = true;
         }
         return root;
+    }
+
+    private static bool Repair()
+    {
+        lock (Gate)
+        {
+            if (_repaired || Archives.Count == 0)
+                return false;
+            _repaired = true;
+            string markers = Path.Combine(ExtractedRoot, ".shipped");
+            try
+            {
+                if (Directory.Exists(markers))
+                    Directory.Delete(markers, true);
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            _extracted = false;
+        }
+        return true;
     }
 
     private static bool Embedded
