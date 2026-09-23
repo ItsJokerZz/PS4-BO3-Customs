@@ -4,9 +4,9 @@ A tool to convert BO3 customs to PS4 and a SPRX to load them on HEN consoles.
 
 Everything you need is on the [Releases](../../releases) page: the tool, the SPRX, and `Deps`.
 
-1. Copy `BO3-Customs` out of `Deps` to `/data` on the console, then drop `BO3-Customs.sprx` in it.
+1. Extract the `Console.zip` from the releases page, and copy it to `/data` on your console.
 2. Run the tool, drag and drop a steam map into the tool and then wait for it to finish.
-3. Copy the converted map into `/data/BO3-Customs/usermaps/` however you may wish.
+3. Copy the converted map into `/data/BO3-Customs/usermaps` however you may wish.
 4. Finally then just launch the game and load the SPRX with you perfered method.
 
 Maps are scanned once, when the SPRX loads, so **add them before you launch**.
