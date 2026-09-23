@@ -2,7 +2,7 @@ A tool to convert BO3 customs to PS4 and a SPRX to load them on HEN consoles.
 
 ## Getting started
 
-Everything you need is on the [Releases](../../releases) page: the tool, the SPRX, and `Deps`.
+Everything you need is on the [Releases](../../releases) page: the tool, SPRX, and dependencies. 
 
 1. Extract the `Console.zip` from the releases page, and copy it to `/data` on your console.
 2. Run the tool, drag and drop a steam map into the tool and then wait for it to finish.
