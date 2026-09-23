@@ -1,2 +1,11 @@
-/SPRX/.vs
+.vs/
+bin/
+obj/
 /SPRX/ORBIS_Debug
+/SPRX/ORBIS_Release
+/Tool/publish
+/Tool/work
+
+# Console data - ships as a release asset, too big for the repo
+/Deps
+/Deps

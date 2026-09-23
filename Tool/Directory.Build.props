@@ -9,6 +9,7 @@
     <Deterministic>true</Deterministic>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>x64</PlatformTarget>

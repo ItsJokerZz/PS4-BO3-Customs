@@ -23,7 +23,7 @@
     <PackageReference Include="Sdcb.FFmpeg" Version="7.0.0" />
     <PackageReference Include="Sdcb.FFmpeg.runtime.windows-x64" Version="7.0.0" />
   </ItemGroup>
-  <Target Name="PackShippedData" BeforeTargets="PrepareForBuild" Inputs="@(ShippedData)" Outputs="$(ShippedArchive)">
+  <Target Name="PackShippedData" BeforeTargets="PrepareForBuild" Inputs="@(ShippedData);$(MSBuildProjectDirectory)\Data\Shipped" Outputs="$(ShippedArchive)">
     <MakeDir Directories="$(BaseIntermediateOutputPath)shipped" />
     <ZipDirectory SourceDirectory="Data\Shipped" DestinationFile="$(ShippedArchive)" Overwrite="true" />
   </Target>

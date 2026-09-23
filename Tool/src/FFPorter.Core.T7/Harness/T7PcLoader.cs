@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Text.Json;
 using System.Globalization;
 using FFPorter.Core.Common.Native;
 
@@ -61,6 +62,9 @@ public sealed class T7PcLoader : T7NativeWalk
 
     private ulong _imageSize;
     private ulong _base = DumpBase;
+    private byte[] _head = [];
+    private JsonElement _segments;
+    private bool _fromSegments;
 
     private ulong V(ulong dumpAddress) => dumpAddress - DumpBase + _base;
 
@@ -96,14 +100,29 @@ public sealed class T7PcLoader : T7NativeWalk
     }
 
 
+    private string Manifest => Path.Combine(ImageSource, "segments.json");
+
     protected override void ReserveImage()
     {
-        using FileStream file = File.OpenRead(ImageSource);
-        var head = new byte[0x1000];
-        file.ReadExactly(head);
-        int pe = BinaryPrimitives.ReadInt32LittleEndian(head.AsSpan(0x3C));
-        _imageSize = BinaryPrimitives.ReadUInt32LittleEndian(head.AsSpan(pe + 24 + 56));
-        ulong recordedBase = BinaryPrimitives.ReadUInt64LittleEndian(head.AsSpan(pe + 24 + 24));
+        _fromSegments = Directory.Exists(ImageSource) && File.Exists(Manifest);
+        ulong recordedBase;
+        if (_fromSegments)
+        {
+            JsonElement root = JsonDocument.Parse(File.ReadAllText(Manifest)).RootElement;
+            recordedBase = root.GetProperty("image_base").GetUInt64();
+            _imageSize = root.GetProperty("image_size").GetUInt64();
+            _segments = root.GetProperty("segments");
+            _head = File.ReadAllBytes(Path.Combine(ImageSource, HeaderSegment()));
+        }
+        else
+        {
+            using FileStream file = File.OpenRead(ImageSource);
+            _head = new byte[0x1000];
+            file.ReadExactly(_head);
+            int header = BinaryPrimitives.ReadInt32LittleEndian(_head.AsSpan(0x3C));
+            _imageSize = BinaryPrimitives.ReadUInt32LittleEndian(_head.AsSpan(header + 24 + 56));
+            recordedBase = BinaryPrimitives.ReadUInt64LittleEndian(_head.AsSpan(header + 24 + 24));
+        }
         if (recordedBase != DumpBase)
             throw new InvalidDataException($"{ImageSource} was dumped at 0x{recordedBase:x}; this walk expects the 0x{DumpBase:x} dump");
         ulong span = (_imageSize + 0xFFFF) & ~0xFFFFUL;
@@ -115,12 +134,42 @@ public sealed class T7PcLoader : T7NativeWalk
         }
     }
 
-    protected override void MapImage()
+    private string HeaderSegment()
+    {
+        foreach (JsonElement segment in _segments.EnumerateArray())
+        {
+            if (segment.GetProperty("start").GetUInt64() == 0)
+                return segment.GetProperty("file").GetString()!;
+        }
+        throw new InvalidDataException($"{Manifest} has no segment at the image base");
+    }
+
+    private void MapSegments()
     {
         Host.Alloc((_imageSize + 0xFFFF) & ~0xFFFFUL, _base, execute: true);
+        var dataSections = new List<(ulong Start, ulong Size)>();
+        foreach (JsonElement segment in _segments.EnumerateArray())
+        {
+            ulong start = segment.GetProperty("start").GetUInt64(), end = segment.GetProperty("end").GetUInt64();
+            using FileStream stream = File.OpenRead(Path.Combine(ImageSource, segment.GetProperty("file").GetString()!));
+            Host.Load(_base + start, stream, (long)(end - start));
+            if (segment.GetProperty("name").GetString() is not (".text" or "HEADER"))
+                dataSections.Add((_base + start, end - start));
+        }
+        if (_base != DumpBase)
+            Rebase(_head, BinaryPrimitives.ReadInt32LittleEndian(_head.AsSpan(0x3C)), dataSections);
+    }
+
+    protected override void MapImage()
+    {
+        if (_fromSegments)
+        {
+            MapSegments();
+            return;
+        }
+        Host.Alloc((_imageSize + 0xFFFF) & ~0xFFFFUL, _base, execute: true);
         using FileStream file = File.OpenRead(ImageSource);
-        var head = new byte[0x1000];
-        file.ReadExactly(head);
+        byte[] head = _head;
         Host.Write(_base, head);
         int pe = BinaryPrimitives.ReadInt32LittleEndian(head.AsSpan(0x3C));
         int sections = BinaryPrimitives.ReadUInt16LittleEndian(head.AsSpan(pe + 6));

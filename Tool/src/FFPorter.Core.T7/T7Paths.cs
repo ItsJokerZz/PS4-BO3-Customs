@@ -4,7 +4,7 @@ namespace FFPorter.Core.T7;
 
 public static class T7Paths
 {
-    public static string Ps4Loader(Workspace workspace) => ToolData.Locate(workspace, "t7_ps4_loader");
+    public static string Ps4Loader(Workspace workspace) => ToolData.Locate(workspace, "t7_ps4_image");
 
     public static string Gsc(Workspace workspace) => ToolData.Locate(workspace, "t7_gsc");
 
@@ -21,6 +21,9 @@ public static class T7Paths
         string? variable = Environment.GetEnvironmentVariable("T7_PC_DUMP");
         if (!string.IsNullOrEmpty(variable))
             return variable;
+        string segments = ToolData.Locate(workspace, "t7_pc_image");
+        if (File.Exists(Path.Combine(segments, "segments.json")))
+            return segments;
         string data = ToolData.Locate(workspace, "t7_pc_image/BlackOps3_dump.exe");
         if (File.Exists(data))
             return data;

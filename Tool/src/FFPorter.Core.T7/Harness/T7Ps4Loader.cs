@@ -66,7 +66,7 @@ public sealed class T7Ps4Loader : T7NativeWalk
         if (problem != null)
         {
             context.Error.WriteLine($"t7-ps4-walk: {problem}");
-            context.Error.WriteLine("usage: ffport __native t7-ps4-walk --loader <t7_ps4_loader dir> --walk <out.t7walk> [--limit N] -- <zone.ff>");
+            context.Error.WriteLine("usage: ffport __native t7-ps4-walk --loader <t7_ps4_image dir> --walk <out.t7walk> [--limit N] -- <zone.ff>");
             return NativeExitCodes.Fail;
         }
         return new T7Ps4Loader(loader!, input!, walk!, limit, context.Out).Execute();
