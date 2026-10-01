@@ -20,8 +20,12 @@ at the root of the drive (a `BO3-Customs/zone/` there works too). Everything els
 /data/BO3-Customs/
 ├── BO3-Customs.sprx
 ├── ui_scripts/
+│   ├── graphics.lua
+│   ├── kbm_strings.lua
 │   ├── mapselect.lua
-│   └── maptable.lua
+│   ├── maptable.lua
+│   ├── mouse.lua
+│   └── restart.lua
 ├── lui/
 │   └── ui/
 │       └── t7/
