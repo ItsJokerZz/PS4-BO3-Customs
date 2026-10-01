@@ -620,8 +620,8 @@ public sealed class T7GfxWorldConverter : IT7AssetConverter, IT7StreamPlanner
                 {
                     List<T7WrappedItems.Image> inZone = dimensions;
                     plan.RegisterNamed(T7WrappedItems.XPakType(kind), name, size,
-                        (xrecord, parts) => T7WrappedItems.Convert(kind, inZone, parts.Count == 1 ? parts[0].Bytes : parts.SelectMany(p => p.Bytes).ToArray()),
-                        $"wrapped-1:{kind}:" + string.Join(",", inZone), byShape: true);
+                        (xrecord, parts) => T7WrappedItems.Convert(kind, inZone, T7WrappedItems.Flatten(parts)),
+                        $"wrapped-2:{kind}:" + string.Join(",", inZone), byShape: true);
                 }
                 if (Q(record + 56) != 0)
                 {
@@ -652,10 +652,10 @@ public sealed class T7GfxWorldConverter : IT7AssetConverter, IT7StreamPlanner
                     List<T7WrappedItems.Image> dims = dimensions;
                     List<(uint LogicalOffset, byte[] Bytes)> Wrap(XPakIndexRecord? xrecord, List<(uint LogicalOffset, byte[] Bytes)> parts)
                     {
-                        byte[] payload = parts.Count == 1 ? parts[0].Bytes : parts.SelectMany(p => p.Bytes).ToArray();
+                        byte[] payload = T7WrappedItems.Flatten(parts);
                         return T7WrappedItems.Convert(kind, dims, payload);
                     }
-                    string signature = $"wrapped-1:{kind}:" + string.Join(",", dims);
+                    string signature = $"wrapped-2:{kind}:" + string.Join(",", dims);
                     plan.Register(key, Wrap, signature);
                     plan.RegisterNamed(T7WrappedItems.XPakType(kind), name, size, Wrap, signature, byShape: true);
                 }

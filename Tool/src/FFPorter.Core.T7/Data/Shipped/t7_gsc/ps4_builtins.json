@@ -1,5 +1,5 @@
 {
- "about": "Script builtins the PS4 T7 eboot links (GSC linker sub_76EE50 through sub_AA79C0 gsc functions, sub_AA7BF0 gsc methods, sub_6C0E20 csc functions, sub_6C12E0 csc methods): canonical name hash -> [min args, max args]. pc_only: builtins the PC build adds (PC tables minus these), with the PS4 builtin a call is rewritten to when one gives the same result on PC (ps4, and why).",
+ "about": "Script builtins the PS4 T7 eboot links (GSC linker sub_76EE50 through sub_AA79C0 gsc functions, sub_AA7BF0 gsc methods, sub_6C0E20 csc functions, sub_6C12E0 csc methods): canonical name hash -> [min args, max args]. pc_only: builtins the PC build adds (PC tables minus these), with the PS4 builtin a call is rewritten to when one gives the same result on PC, or has no effect where PS4 scripts cannot do what PC does (ps4, and why says what changes). A call resolves to a script function first (own exports, then the #using scripts' public exports, by name and namespace), so only calls no script defines reach these tables.",
  "gsc_function": {
   "0082f90c": [0, 0],
   "00895b00": [1, 2147483647],
@@ -3065,8 +3065,8 @@
   "8b57c052": {"name": "modvar", "ps4": "array", "why": "PC only runs it while a mod is loaded (it never touches engine dvars), so in a usermap it does nothing; array() takes the same arguments and has no effect"},
   "77110410": {"name": "isusingmods"},
   "4c0dc03d": {"name": "clearallcharactertables"},
-  "af89ac8f": {"name": "bottogglegodmode"},
-  "a71fa5a2": {"name": "bottoggledemigodmode"},
+  "af89ac8f": {"name": "bottogglegodmode", "ps4": "istestclient", "why": "PC switches god mode on or off for a bot, which PS4 scripts cannot do, so bots can die on PS4; istestclient() takes the same arguments (none) and has no effect"},
+  "a71fa5a2": {"name": "bottoggledemigodmode", "ps4": "istestclient", "why": "PC switches demigod mode on or off for a bot, which PS4 scripts cannot do, so bots can die on PS4; istestclient() takes the same arguments (none) and has no effect"},
   "fa5d216b": {"name": "__protected__notelootconsume"},
   "e1f3d6d7": {"name": "__protected__reportnotedloot"},
   "594d2bdf": {"name": "__protected__setbgbunlocked"},

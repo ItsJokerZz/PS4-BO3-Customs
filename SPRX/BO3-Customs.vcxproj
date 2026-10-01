@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="libjbc.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="platform.cpp" />
     <ClCompile Include="Detour.cpp" />
@@ -19,9 +20,12 @@
     <ClCompile Include="t7_maps.cpp" />
     <ClCompile Include="t7_mapimages.cpp" />
     <ClCompile Include="t7_lua.cpp" />
+    <ClCompile Include="t7_kbm.cpp" />
+    <ClCompile Include="t7_log.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers.hpp" />
+    <ClInclude Include="libjbc.h" />
     <ClInclude Include="platform.hpp" />
     <ClInclude Include="Detour.hpp" />
     <ClInclude Include="HDE64.h" />
@@ -30,6 +34,9 @@
     <ClInclude Include="t7_maps.hpp" />
     <ClInclude Include="t7_mapimages.hpp" />
     <ClInclude Include="t7_lua.hpp" />
+    <ClInclude Include="t7_kbm.hpp" />
+    <ClInclude Include="t7_kbm_strings.hpp" />
+    <ClInclude Include="t7_log.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath12)</VCTargetsPath>
@@ -57,6 +64,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <PythonCommand Condition="'$(PythonCommand)' == '' and Exists('$(SystemRoot)\py.exe')">"$(SystemRoot)\py.exe" -3</PythonCommand>
+    <PythonCommand Condition="'$(PythonCommand)' == ''">python.exe</PythonCommand>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
     <TargetExt>.prx</TargetExt>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -75,13 +86,13 @@
       <CppLanguageStd>Cpp20</CppLanguageStd>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libkernel_stub_weak.a;libkernel_gen_stub_weak.a;libSceSysmodule_stub_weak.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libkernel_stub_weak.a;libkernel_gen_stub_weak.a;libkernel_unity_stub_weak.a;libSceSysmodule_stub_weak.a;libSceMouse_stub_weak.a;libSceUserService_stub_weak.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <InfoStripping>StripSymsAndDebug</InfoStripping>
     </Link>
     <PostBuildEvent>
-      <Command>python.exe "$(ProjectDir)downgrade_elf.py" --verbose --sdk-version 04.500.000 "$(TargetDir)$(TargetName).prx" "$(ProjectDir)$(TargetName).prx.down"
-python.exe "$(ProjectDir)make_fself.py" "$(ProjectDir)$(TargetName).prx.down" "$(TargetDir)$(TargetName).sprx" --fw-version 0x04050000
+      <Command>$(PythonCommand) "$(ProjectDir)downgrade_elf.py" --verbose --sdk-version 04.500.000 "$(TargetDir)$(TargetName).prx" "$(ProjectDir)$(TargetName).prx.down" || exit /b 1
+$(PythonCommand) "$(ProjectDir)make_fself.py" "$(ProjectDir)$(TargetName).prx.down" "$(TargetDir)$(TargetName).sprx" --fw-version 0x04050000 || exit /b 1
 del "$(TargetDir)$(TargetName).prx"
 del "$(ProjectDir)$(TargetName).prx.down"</Command>
     </PostBuildEvent>
@@ -95,13 +106,13 @@ del "$(ProjectDir)$(TargetName).prx.down"</Command>
       <CppLanguageStd>Cpp20</CppLanguageStd>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libkernel_stub_weak.a;libkernel_gen_stub_weak.a;libSceSysmodule_stub_weak.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libkernel_stub_weak.a;libkernel_gen_stub_weak.a;libSceSysmodule_stub_weak.a;libSceMouse_stub_weak.a;libSceUserService_stub_weak.a;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <InfoStripping>StripSymsAndDebug</InfoStripping>
     </Link>
     <PostBuildEvent>
-      <Command>python.exe "$(ProjectDir)downgrade_elf.py" --verbose --sdk-version 04.500.000 "$(TargetDir)$(TargetName).prx" "$(ProjectDir)$(TargetName).prx.down"
-python.exe "$(ProjectDir)make_fself.py" "$(ProjectDir)$(TargetName).prx.down" "$(TargetDir)$(TargetName).sprx" --fw-version 0x04050000
+      <Command>$(PythonCommand) "$(ProjectDir)downgrade_elf.py" --verbose --sdk-version 04.500.000 "$(TargetDir)$(TargetName).prx" "$(ProjectDir)$(TargetName).prx.down" || exit /b 1
+$(PythonCommand) "$(ProjectDir)make_fself.py" "$(ProjectDir)$(TargetName).prx.down" "$(TargetDir)$(TargetName).sprx" --fw-version 0x04050000 || exit /b 1
 del "$(TargetDir)$(TargetName).prx"
 del "$(ProjectDir)$(TargetName).prx.down"</Command>
     </PostBuildEvent>

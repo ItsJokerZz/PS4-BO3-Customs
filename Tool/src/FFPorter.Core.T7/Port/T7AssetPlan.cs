@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using FFPorter.Core.T7.Harness;
 using FFPorter.Core.T7.Link;
 
@@ -15,6 +16,10 @@ public sealed class T7PortContext
     public Streams.T7StreamMap Streams { get; } = new();
 
     public IReadOnlyDictionary<string, string> SoundRenames { get; init; } = new Dictionary<string, string>();
+
+    public IReadOnlySet<uint> StreamedSounds { get; init; } = new HashSet<uint>();
+
+    public ISet<uint> SwitchedSounds { get; init; } = new HashSet<uint>();
 
     public T7PcShaderLibrary? ShaderLibrary { get; set; }
 
@@ -53,6 +58,33 @@ public sealed class T7PortContext
     public Scripts.T7Gsc? Gsc { get; set; }
 
     public Scripts.T7GscBuiltins? GscBuiltins { get; set; }
+
+    private Dictionary<string, IReadOnlyList<Scripts.T7GscBuiltins.ScriptExport>>? _scriptExports;
+
+    public IReadOnlyList<Scripts.T7GscBuiltins.ScriptExport>? ScriptExports(string script)
+    {
+        if (_scriptExports == null)
+        {
+            _scriptExports = new Dictionary<string, IReadOnlyList<Scripts.T7GscBuiltins.ScriptExport>>(StringComparer.OrdinalIgnoreCase);
+            foreach (T7Walk.Asset asset in Pc.Walk.Assets)
+            {
+                if (asset.Type != T7AssetTypes.ScriptParseTree || asset.Reads.Count < 2 || string.IsNullOrEmpty(asset.Name))
+                    continue;
+                T7Walk.Span header = asset.Reads[0], buffer = asset.Reads[^1];
+                uint length = BinaryPrimitives.ReadUInt32LittleEndian(Pc.Zone.AsSpan((int)header.FileOffset + 8));
+                if (buffer.Size != length + 1L || length < 0x48)
+                    continue;
+                try
+                {
+                    _scriptExports.TryAdd(asset.Name, Scripts.T7GscBuiltins.Exports(Pc.Zone.AsSpan((int)buffer.FileOffset, (int)length)));
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                }
+            }
+        }
+        return _scriptExports.TryGetValue(script, out var exports) ? exports : null;
+    }
 
     public string? Acts { get; set; }
 
@@ -114,11 +146,7 @@ public sealed class T7CopyConverter : IT7AssetConverter
 {
     public static readonly HashSet<int> LoaderCheckedTypes =
     [
-        T7AssetTypes.StreamerHint, T7AssetTypes.Bitfield, T7AssetTypes.CustomizationTableColor, T7AssetTypes.MapTable, T7AssetTypes.LeaderboardDef,
-        T7AssetTypes.MedalTable, T7AssetTypes.Medal, T7AssetTypes.ScriptBundleList, T7AssetTypes.VehicleFxDef, T7AssetTypes.CgMediaTable,
-        T7AssetTypes.ObjectiveList, T7AssetTypes.LocDmgTable, T7AssetTypes.MapTableLoadingImages, T7AssetTypes.Ddl, T7AssetTypes.FlameTable,
-        T7AssetTypes.BehaviorStateMachine, T7AssetTypes.BulletPenetration, T7AssetTypes.CustomizationTableFeImages, T7AssetTypes.LightDef,
-        T7AssetTypes.StructuredTable, T7AssetTypes.FontIcon, T7AssetTypes.SndDriverGlobals, T7AssetTypes.SoundPatch,
+        T7AssetTypes.Ddl,
     ];
 
     public static readonly HashSet<int> IdenticalTypes =
@@ -135,6 +163,12 @@ public sealed class T7CopyConverter : IT7AssetConverter
         T7AssetTypes.Beam, T7AssetTypes.Objective, T7AssetTypes.Ttf,
         T7AssetTypes.Localize, T7AssetTypes.Vehicle,
         T7AssetTypes.VehicleSoundDef, T7AssetTypes.PlayerSoundsTable, T7AssetTypes.PlayerFxTable, T7AssetTypes.CustomizationTable,
+        T7AssetTypes.VehicleFxDef, T7AssetTypes.StreamerHint, T7AssetTypes.FlameTable, T7AssetTypes.Bitfield, T7AssetTypes.SoundPatch,
+        T7AssetTypes.CustomizationTableColor, T7AssetTypes.MapTable, T7AssetTypes.LeaderboardDef, T7AssetTypes.MedalTable,
+        T7AssetTypes.Medal, T7AssetTypes.ScriptBundleList, T7AssetTypes.CgMediaTable, T7AssetTypes.ObjectiveList,
+        T7AssetTypes.LocDmgTable, T7AssetTypes.MapTableLoadingImages, T7AssetTypes.BehaviorStateMachine,
+        T7AssetTypes.BulletPenetration, T7AssetTypes.CustomizationTableFeImages, T7AssetTypes.LightDef,
+        T7AssetTypes.StructuredTable, T7AssetTypes.FontIcon, T7AssetTypes.SndDriverGlobals,
         .. LoaderCheckedTypes,
     ];
 

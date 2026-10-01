@@ -72,6 +72,45 @@ public static class T7WrappedItems
         return output;
     }
 
+    private static byte[] Detile(ReadOnlySpan<byte> tiled, int surfaces, int width, int height, int unit)
+    {
+        var output = new byte[(long)surfaces * width * height * unit];
+        T7Gnm.DetileThin(tiled, width, height, surfaces, Align8(width), Align8(height), unit, output);
+        return output;
+    }
+
+    private static bool IsAlreadyTiled(int kind, IReadOnlyList<Image> images, ReadOnlySpan<byte> payload, out int used)
+    {
+        int offset = 0, pass = 0, single = 0;
+        used = 0;
+        do
+        {
+            foreach (Image image in images)
+            {
+                foreach ((int surfaces, int w, int h, int unit) in image.LevelSurfaces())
+                {
+                    int size = surfaces * Align8(w) * Align8(h) * unit;
+                    if (offset + size > payload.Length)
+                        return false;
+                    ReadOnlySpan<byte> tiled = payload.Slice(offset, size);
+                    if (!tiled.SequenceEqual(Tile(Detile(tiled, surfaces, w, h, unit), surfaces, w, h, unit)))
+                        return false;
+                    offset += size;
+                }
+            }
+            if (pass == 0)
+                single = offset;
+            pass++;
+        }
+        while (RepeatsImageSet(kind, payload, offset, single, pass));
+        used = offset;
+        return offset > 0 && !payload[offset..].ContainsAnyExcept((byte)0);
+    }
+
+    private static bool RepeatsImageSet(int kind, ReadOnlySpan<byte> payload, int offset, int single, int pass) =>
+        kind == KindProbeVolume && single > 0 && offset < payload.Length && payload.Length % single == 0 && pass < 8
+        && payload[offset..].ContainsAnyExcept((byte)0);
+
     public static long Ps4LogicalSize(int kind, IReadOnlyList<Image> images, long pcSize)
     {
         if (kind == KindSst)
@@ -115,15 +154,31 @@ public static class T7WrappedItems
             return parts;
         }
         using var joined = new MemoryStream();
-        foreach (Image image in images)
+        int pass = 0;
+        int single = 0;
+        do
         {
-            foreach ((int surfaces, int w, int h, int unit) in image.LevelSurfaces())
+            foreach (Image image in images)
             {
-                int size = surfaces * w * h * unit;
-                joined.Write(Tile(payload.Slice(offset, size), surfaces, w, h, unit));
-                offset += size;
+                foreach ((int surfaces, int w, int h, int unit) in image.LevelSurfaces())
+                {
+                    int size = surfaces * w * h * unit;
+                    if (offset + size > payload.Length)
+                    {
+                        CheckUsed(payload, offset + size);
+                        break;
+                    }
+                    joined.Write(Tile(payload.Slice(offset, size), surfaces, w, h, unit));
+                    offset += size;
+                }
             }
+            if (pass == 0)
+                single = offset;
+            pass++;
         }
+        while (RepeatsImageSet(kind, payload, offset, single, pass));
+        if (payload[offset..].ContainsAnyExcept((byte)0) && IsAlreadyTiled(kind, images, payload, out int tiledBytes))
+            return [(0, payload[..tiledBytes].ToArray())];
         CheckUsed(payload, offset);
         return [(0, joined.ToArray())];
     }

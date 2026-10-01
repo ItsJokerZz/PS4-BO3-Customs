@@ -17,6 +17,9 @@ public sealed class FidelityView : Observable
 
     public ObservableCollection<DimensionView> Dimensions { get; } = [];
     public ObservableCollection<string> Problems { get; } = [];
+    public ObservableCollection<StepView> Steps { get; } = [];
+
+    public bool HasSteps => Steps.Count > 0;
 
     public string Map { get => _map; private set => Set(ref _map, value); }
     public string State { get => _state; private set { if (Set(ref _state, value)) { Raise(nameof(IsRunning)); Raise(nameof(StateLabel)); RaiseScore(); } } }
@@ -77,6 +80,16 @@ public sealed class FidelityView : Observable
         ElapsedText = Elapsed(snapshot.ElapsedSeconds);
         for (int i = 0; i < Dimensions.Count && i < snapshot.Dimensions.Count; i++)
             Dimensions[i].Update(snapshot.Dimensions[i], snapshot.State);
+        List<FidelityStepReport> steps = snapshot.Steps ?? [];
+        if (Steps.Count != steps.Count || Steps.Zip(steps).Any(pair => pair.First.Key != pair.Second.Key || pair.First.Title != pair.Second.Title))
+        {
+            Steps.Clear();
+            foreach (FidelityStepReport step in steps)
+                Steps.Add(new StepView(step.Key, step.Title));
+            Raise(nameof(HasSteps));
+        }
+        for (int i = 0; i < Steps.Count; i++)
+            Steps[i].Update(steps[i]);
         if (!Problems.SequenceEqual(snapshot.Problems))
         {
             Problems.Clear();
@@ -95,13 +108,21 @@ public sealed class FidelityView : Observable
         Headline = headline;
         foreach (DimensionView dimension in Dimensions)
             dimension.Settle();
+        foreach (StepView step in Steps)
+            step.Settle(state);
         foreach (string problem in problems ?? [])
             Problems.Add(problem);
         Raise(nameof(HasProblems));
         Raise(nameof(ProblemSummary));
     }
 
-    private static string Elapsed(double seconds)
+    public void Tick()
+    {
+        foreach (StepView step in Steps)
+            step.Tick();
+    }
+
+    internal static string Elapsed(double seconds)
     {
         var time = TimeSpan.FromSeconds(seconds);
         return time.TotalHours >= 1 ? $"{(int)time.TotalHours}h {time.Minutes}m" : time.TotalMinutes >= 1 ? $"{(int)time.TotalMinutes}m {time.Seconds}s" : $"{time.Seconds}s";
@@ -159,3 +180,64 @@ public sealed class DimensionView : Observable
 }
 
 public sealed record NoteView(string Grade, string Text);
+
+public sealed class StepView : Observable
+{
+    private string _state = FidelityStepStates.Waiting, _detail = "", _percentText = "", _elapsedText = "";
+    private double _progress, _elapsedSeconds;
+    private DateTime _seenAt = DateTime.UtcNow;
+
+    public StepView(string key, string title)
+    {
+        Key = key;
+        Title = title;
+    }
+
+    public string Key { get; }
+    public string Title { get; }
+
+    public string State { get => _state; private set { if (Set(ref _state, value)) { Raise(nameof(IsRunning)); Raise(nameof(HasDetail)); } } }
+    public double Progress { get => _progress; private set => Set(ref _progress, value); }
+    public string Detail { get => _detail; private set { if (Set(ref _detail, value)) Raise(nameof(HasDetail)); } }
+    public string PercentText { get => _percentText; private set => Set(ref _percentText, value); }
+    public string ElapsedText { get => _elapsedText; private set => Set(ref _elapsedText, value); }
+    public bool IsRunning => State == FidelityStepStates.Running;
+    public bool HasDetail => State is FidelityStepStates.Running or FidelityStepStates.Failed && Detail.Length > 0;
+
+    public void Update(FidelityStepReport report)
+    {
+        State = report.State;
+        Progress = report.Progress;
+        Detail = report.Detail;
+        _elapsedSeconds = report.ElapsedSeconds;
+        _seenAt = DateTime.UtcNow;
+        Refresh();
+    }
+
+    public void Tick()
+    {
+        if (IsRunning)
+            Refresh();
+    }
+
+    public void Settle(string state)
+    {
+        if (State == FidelityStepStates.Running)
+        {
+            _elapsedSeconds += (DateTime.UtcNow - _seenAt).TotalSeconds;
+            State = state == FidelityStates.Cancelled ? FidelityStepStates.Cancelled : FidelityStepStates.Failed;
+        }
+        else if (State == FidelityStepStates.Waiting)
+        {
+            State = FidelityStepStates.Skipped;
+        }
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        double seconds = IsRunning ? _elapsedSeconds + (DateTime.UtcNow - _seenAt).TotalSeconds : _elapsedSeconds;
+        PercentText = IsRunning ? $"{Math.Floor(Progress * 100):0}%" : "";
+        ElapsedText = State is FidelityStepStates.Waiting or FidelityStepStates.Skipped ? "" : FidelityView.Elapsed(seconds);
+    }
+}

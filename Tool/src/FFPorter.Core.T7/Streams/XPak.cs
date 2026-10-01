@@ -76,8 +76,12 @@ public sealed class XPak : IDisposable
             for (int at = 0; at + 16 <= raw.Length;)
             {
                 ulong key = BinaryPrimitives.ReadUInt64LittleEndian(raw.AsSpan(at));
-                int length = checked((int)BinaryPrimitives.ReadUInt64LittleEndian(raw.AsSpan(at + 8)));
-                index[key] = new XPakIndexRecord(key, Encoding.Latin1.GetString(raw, at + 16, length));
+                ulong size = BinaryPrimitives.ReadUInt64LittleEndian(raw.AsSpan(at + 8));
+                if (size > (ulong)(raw.Length - at - 16))
+                    break;
+                int length = (int)size;
+                if (key != 0)
+                    index[key] = new XPakIndexRecord(key, Encoding.Latin1.GetString(raw, at + 16, length));
                 at += 16 + length;
             }
             return _index = index;

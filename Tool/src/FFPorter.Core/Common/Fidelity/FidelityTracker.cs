@@ -28,7 +28,20 @@ public sealed class FidelityTracker
         public bool AllExact => Total > 0 && Units[(int)FidelityGrade.Exact] == Total;
     }
 
+    private sealed class StepState
+    {
+        public required string Key { get; init; }
+        public required string Title { get; init; }
+        public string State { get; set; } = FidelityStepStates.Waiting;
+        public double Progress { get; set; }
+        public string Detail { get; set; } = "";
+        public long Started { get; set; } = -1;
+        public long Ended { get; set; } = -1;
+        public bool Failed { get; set; }
+    }
+
     private readonly Part[] _parts = FidelityScale.Dimensions.Select(_ => new Part()).ToArray();
+    private readonly List<StepState> _steps = [];
     private readonly Action<FidelitySnapshot>? _emit;
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private readonly List<string> _problems = [];
@@ -99,6 +112,71 @@ public sealed class FidelityTracker
         part.Changed = true;
     }
 
+    public void AddStep(string key, string title)
+    {
+        if (!_steps.Exists(s => s.Key == key))
+            _steps.Add(new StepState { Key = key, Title = title });
+    }
+
+    public void StartStep(string key, string detail = "")
+    {
+        if (FindStep(key) is not { State: FidelityStepStates.Waiting } step)
+            return;
+        foreach (StepState running in _steps.Where(s => s.State == FidelityStepStates.Running))
+            EndStep(running, _state);
+        step.State = FidelityStepStates.Running;
+        step.Started = _clock.ElapsedMilliseconds;
+        step.Detail = detail;
+        Tick();
+    }
+
+    public void StepProgress(string key, double fraction, string? detail = null)
+    {
+        if (FindStep(key) is not { State: FidelityStepStates.Running } step)
+            return;
+        step.Progress = Math.Clamp(Math.Max(step.Progress, fraction), 0, 1);
+        if (detail != null)
+            step.Detail = detail;
+        Tick();
+    }
+
+    public void FailStep(string key)
+    {
+        if (FindStep(key) is { } step)
+            step.Failed = true;
+    }
+
+    public void SkipStep(string key)
+    {
+        if (FindStep(key) is not { State: FidelityStepStates.Waiting } step)
+            return;
+        step.State = FidelityStepStates.Skipped;
+        Tick();
+    }
+
+    public void PlaceNext(string key)
+    {
+        int at = _steps.FindIndex(s => s.Key == key);
+        if (at < 0 || _steps[at].State != FidelityStepStates.Waiting)
+            return;
+        int target = _steps.FindLastIndex(s => s.State != FidelityStepStates.Waiting) + 1;
+        if (target >= at)
+            return;
+        StepState step = _steps[at];
+        _steps.RemoveAt(at);
+        _steps.Insert(target, step);
+    }
+
+    private StepState? FindStep(string key) => _steps.Find(s => s.Key == key);
+
+    private void EndStep(StepState step, string state)
+    {
+        step.State = step.Failed ? FidelityStepStates.Failed : state == FidelityStates.Cancelled ? FidelityStepStates.Cancelled : FidelityStepStates.Done;
+        if (step.State == FidelityStepStates.Done)
+            step.Progress = 1;
+        step.Ended = _clock.ElapsedMilliseconds;
+    }
+
     public void Problem(string text)
     {
         if (_problems.Count < 200)
@@ -133,6 +211,13 @@ public sealed class FidelityTracker
             _progress = 1;
         _stage = state switch { FidelityStates.Done => "Finished", FidelityStates.Cancelled => "Cancelled", _ => "Failed" };
         _detail = "";
+        foreach (StepState step in _steps)
+        {
+            if (step.State == FidelityStepStates.Running)
+                EndStep(step, state);
+            else if (step.State == FidelityStepStates.Waiting)
+                step.State = FidelityStepStates.Skipped;
+        }
         FidelitySnapshot snapshot = Snapshot();
         _emit?.Invoke(snapshot);
         _lastEmit = _clock.ElapsedMilliseconds;
@@ -194,6 +279,15 @@ public sealed class FidelityTracker
             Headline = _state == FidelityStates.Running ? $"Converting. Scores fill in as each part of the {Subject} is converted." : _headline,
             Problems = [.. _problems],
             ElapsedSeconds = Math.Round(_clock.Elapsed.TotalSeconds, 1),
+            Steps = _steps.Select(s => new FidelityStepReport
+            {
+                Key = s.Key,
+                Title = s.Title,
+                State = s.State,
+                Progress = Math.Round(s.Progress, 4),
+                Detail = s.Detail,
+                ElapsedSeconds = s.Started < 0 ? 0 : Math.Round(((s.Ended >= 0 ? s.Ended : _clock.ElapsedMilliseconds) - s.Started) / 1000.0, 1),
+            }).ToList(),
         };
         foreach (FidelityDimension dimension in FidelityScale.Dimensions)
         {

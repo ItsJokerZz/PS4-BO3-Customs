@@ -1,0 +1,6 @@
+vcruntime140.dll is the Microsoft Visual C++ runtime, taken from the x64 redistributable that ships with
+Visual Studio 2022 (VC\Redist\MSVC\<version>\x64\Microsoft.VC143.CRT). libsndfile_x64.dll imports it, and it
+is not part of Windows, so it travels beside libsndfile instead of being a machine prerequisite.
+
+Redistributed under the Microsoft Visual Studio redistributable rights. Microsoft grants no warranty for it
+and it remains Microsoft's; nothing here modifies it.

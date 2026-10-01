@@ -193,7 +193,7 @@ public sealed class T7ImageConverter : IT7AssetConverter, IT7NestedConverter, IT
                 T7Fidelity? fidelity = context.Fidelity;
                 plan.Register(key, (record, parts) =>
                 {
-                    byte[] payload = parts.Count == 1 ? parts[0].Bytes : parts.SelectMany(p => p.Bytes).ToArray();
+                    byte[] payload = Formats.T7WrappedItems.Flatten(parts);
                     byte[] converted = ConvertMips(info, payload, first, end, null, out long used);
                     if (payload.AsSpan((int)Math.Min(used, payload.Length)).ContainsAnyExcept((byte)0))
                     {

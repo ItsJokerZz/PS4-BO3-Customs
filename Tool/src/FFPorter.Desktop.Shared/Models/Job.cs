@@ -22,7 +22,10 @@ public sealed class Job : Observable
 
     public string Codename => Edition.Current.Codename;
 
-    public string Size => Length >= 1073741824 ? $"{Length / 1073741824d:0.##} GB" : Length >= 1048576 ? $"{Length / 1048576d:0.#} MB" : $"{Length / 1024d:0.#} KB";
+    public string Size => SizeText(Length);
+
+    public static string SizeText(long length) =>
+        length >= 1073741824 ? $"{length / 1073741824d:0.##} GB" : length >= 1048576 ? $"{length / 1048576d:0.#} MB" : $"{length / 1024d:0.#} KB";
 
     public string Detail
     {

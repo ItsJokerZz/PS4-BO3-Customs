@@ -41,6 +41,7 @@ internal sealed unsafe class SndFile
     private readonly delegate* unmanaged[Cdecl]<nint, float*, long, long> _readFloat;
     private readonly delegate* unmanaged[Cdecl]<nint, int*, long, long> _writeInt;
     private readonly delegate* unmanaged[Cdecl]<nint, int> _error;
+    private readonly delegate* unmanaged[Cdecl]<nint, byte*> _strerror;
     private readonly delegate* unmanaged[Cdecl]<nint, int> _close;
 
     private SndFile(string path)
@@ -53,6 +54,8 @@ internal sealed unsafe class SndFile
         _readFloat = (delegate* unmanaged[Cdecl]<nint, float*, long, long>)NativeLibrary.GetExport(module, "sf_readf_float");
         _writeInt = (delegate* unmanaged[Cdecl]<nint, int*, long, long>)NativeLibrary.GetExport(module, "sf_writef_int");
         _error = (delegate* unmanaged[Cdecl]<nint, int>)NativeLibrary.GetExport(module, "sf_error");
+        _strerror = NativeLibrary.TryGetExport(module, "sf_strerror", out nint strerror)
+            ? (delegate* unmanaged[Cdecl]<nint, byte*>)strerror : null;
         _close = (delegate* unmanaged[Cdecl]<nint, int>)NativeLibrary.GetExport(module, "sf_close");
     }
 
@@ -112,6 +115,14 @@ internal sealed unsafe class SndFile
     }
 
     public int Error(nint handle) => _error(handle);
+
+    public string ErrorText(nint handle)
+    {
+        if (_strerror == null)
+            return "no detail";
+        byte* text = _strerror(handle);
+        return text == null ? "no detail" : System.Runtime.InteropServices.Marshal.PtrToStringAnsi((nint)text) ?? "no detail";
+    }
 
     public int Close(nint handle) => _close(handle);
 

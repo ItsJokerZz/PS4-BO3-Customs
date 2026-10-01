@@ -40,6 +40,7 @@ public sealed class T7SoundBank
     public string Platform = "pc";
     public string Language = "al";
     public byte PlatformByte = 0x0C;
+    public bool NamesMissing;
     public List<Entry> Entries = [];
 
     public static T7SoundBank Parse(ReadOnlySpan<byte> file)
@@ -65,8 +66,6 @@ public sealed class T7SoundBank
         }
         int count = (int)BinaryPrimitives.ReadUInt32LittleEndian(file[0x14..]);
         long entries = (long)BinaryPrimitives.ReadUInt64LittleEndian(file[0x28..]);
-        long sourceChecksums = (long)BinaryPrimitives.ReadUInt64LittleEndian(file[0x248..]);
-        long names = (long)BinaryPrimitives.ReadUInt64LittleEndian(file[0x250..]);
         for (int i = 0; i < count; i++)
         {
             ReadOnlySpan<byte> record = file.Slice((int)entries + EntrySize * i, EntrySize);
@@ -83,12 +82,54 @@ public sealed class T7SoundBank
                 Looping = record[26],
                 Format = record[27],
                 Meta = record.Slice(28, 8).ToArray(),
-                SourceChecksum = file.Slice((int)sourceChecksums + 16 * i, 16).ToArray(),
-                Name = CString(file.Slice((int)names + NameSize * i, NameSize)),
             });
+        }
+        (long sourceChecksums, long names) = TailTables(file, bank.Entries, (long)BinaryPrimitives.ReadUInt64LittleEndian(file[0x30..]),
+            (long)BinaryPrimitives.ReadUInt64LittleEndian(file[0x248..]), (long)BinaryPrimitives.ReadUInt64LittleEndian(file[0x250..]));
+        bank.NamesMissing = count > 0 && names < 0;
+        for (int i = 0; i < count; i++)
+        {
+            if (sourceChecksums >= 0)
+                bank.Entries[i].SourceChecksum = file.Slice((int)sourceChecksums + 16 * i, 16).ToArray();
+            if (names >= 0)
+                bank.Entries[i].Name = CString(file.Slice((int)names + NameSize * i, NameSize));
         }
         return bank;
     }
+
+    private static (long SourceChecksums, long Names) TailTables(ReadOnlySpan<byte> file, List<Entry> entries, long checksums, long sourceChecksums, long names)
+    {
+        int count = entries.Count;
+        long laidOutSource = AlignUp(checksums + 16L * count);
+        long laidOutNames = AlignUp(laidOutSource + 16L * count);
+        if (NamesAt(file, entries, names))
+            return (Fits(file, sourceChecksums, 16, count) ? sourceChecksums : -1, names);
+        if (NamesAt(file, entries, laidOutNames))
+            return (laidOutSource, laidOutNames);
+        return (Fits(file, sourceChecksums, 16, count) ? sourceChecksums : Fits(file, laidOutSource, 16, count) ? laidOutSource : -1, -1);
+    }
+
+    private static bool NamesAt(ReadOnlySpan<byte> file, List<Entry> entries, long offset)
+    {
+        if (!Fits(file, offset, NameSize, entries.Count))
+            return false;
+        int named = 0, matching = 0;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            string name = CString(file.Slice((int)offset + NameSize * i, NameSize));
+            if (name.Length == 0)
+                continue;
+            named++;
+            if (HashName(name) == entries[i].Id)
+                matching++;
+        }
+        return named > 0 && matching * 2 > named;
+    }
+
+    private static bool Fits(ReadOnlySpan<byte> file, long offset, int size, int count) =>
+        offset >= HeaderSize && offset + (long)size * count <= file.Length;
+
+    private static long AlignUp(long offset) => (offset + Align - 1) / Align * Align;
 
     public byte[] Build()
     {
@@ -156,7 +197,7 @@ public sealed class T7SoundBank
 
     private static long Pad(MemoryStream output)
     {
-        long aligned = (output.Length + Align - 1) / Align * Align;
+        long aligned = AlignUp(output.Length);
         output.Write(new byte[aligned - output.Length]);
         return output.Position;
     }

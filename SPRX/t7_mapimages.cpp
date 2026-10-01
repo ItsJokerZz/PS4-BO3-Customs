@@ -14,12 +14,13 @@ constexpr uintptr_t kGenerations   = 0xF14B4E8;
 constexpr uintptr_t kStreamedDraw  = 0x11DECE0;
 constexpr uintptr_t kGpuHeap       = 0x705D9C0;
 constexpr uintptr_t kGpuHeapTable  = 0x705D9B8;
+constexpr uintptr_t kImageFrame    = 0x73C9F30;
 
 constexpr int      kImageType     = 9;
 constexpr int      kPixelFormat   = 0x14;
 constexpr int      kImageFlags    = 4;
 constexpr int      kMaxElements   = 0x4E20;
-constexpr int      kMaxPictures   = 2;
+constexpr int      kMaxPictures   = 128;
 constexpr size_t   kMaxFileBytes  = 48u * 1024 * 1024;
 
 constexpr int kPreviewWidth  = 640;
@@ -34,8 +35,9 @@ constexpr size_t kImageStreamed    = 250;
 constexpr size_t kImagePixels      = 256;
 constexpr size_t kImagePixelBytes  = 272;
 
-constexpr size_t kSlotName  = 304;
-constexpr size_t kSlotInUse = 368;
+constexpr size_t kSlotName     = 304;
+constexpr size_t kSlotInUse    = 368;
+constexpr size_t kSlotReleased = 384;
 
 constexpr size_t kElementFlags     = 16;
 constexpr size_t kElementImage     = 208;
@@ -55,13 +57,13 @@ using FindAsset_t = uint64_t (*)(uint64_t type, const char* name, uint64_t error
 
 struct Picture
 {
-    char shown[96];
-    char created[96];
+    char name[96];
     uint64_t image;
 };
 
 static uintptr_t g_base = 0;
 static Picture   g_pictures[kMaxPictures];
+static int       g_pictureCount = 0;
 
 static Detour g_registerDetour{};
 static void*  g_registerOriginal = nullptr;
@@ -152,11 +154,10 @@ static bool WritePicture(const PngImage& picture, uint8_t* pixels, int width, in
     const int64_t across = (int64_t)picture.width * height;
     const int64_t down = (int64_t)picture.height * width;
 
+    memset(pixels, 0, (size_t)pitch * 4 * (size_t)height);
+
     if (across * 10 >= down * 9 && across * 9 <= down * 10)
-    {
-        Png_Resample(picture, pixels, width, height, (size_t)pitch * 4);
-        return false;
-    }
+        return Png_Scale(picture, pixels, width, height, (size_t)pitch * 4, nullptr);
 
     int fitWidth = width;
     int fitHeight = height;
@@ -169,31 +170,21 @@ static bool WritePicture(const PngImage& picture, uint8_t* pixels, int width, in
     fitWidth = fitWidth < 1 ? 1 : fitWidth;
     fitHeight = fitHeight < 1 ? 1 : fitHeight;
 
-    uint8_t* const fitted = (uint8_t*)malloc((size_t)fitWidth * (size_t)fitHeight * 4);
-
-    if (!fitted)
-    {
-        Png_Resample(picture, pixels, width, height, (size_t)pitch * 4);
-        return false;
-    }
-
-    Png_Resample(picture, fitted, fitWidth, fitHeight, (size_t)fitWidth * 4);
-    memset(pixels, 0, (size_t)pitch * 4 * (size_t)height);
-
     const int left = (width - fitWidth) / 2;
     const int top = (height - fitHeight) / 2;
 
-    for (int y = 0; y < fitHeight; ++y)
-    {
-        memcpy(pixels + ((size_t)(top + y) * (size_t)pitch + (size_t)left) * 4, fitted + (size_t)y * (size_t)fitWidth * 4,
-               (size_t)fitWidth * 4);
-    }
-
-    free(fitted);
-    return true;
+    return Png_Scale(picture, pixels + ((size_t)top * (size_t)pitch + (size_t)left) * 4, fitWidth, fitHeight,
+                     (size_t)pitch * 4, nullptr);
 }
 
-static uint64_t MakePicture(const char* name, uint64_t into)
+static void ReleaseImage(uint64_t image)
+{
+    *(uint8_t*)(image + kSlotName) = 0;
+    *(uint8_t*)(image + kSlotInUse) = 0;
+    *(uint64_t*)(image + kSlotReleased) = *(uint64_t*)(g_base + kImageFrame) + 3;
+}
+
+static uint64_t MakePicture(const char* name)
 {
     const bool preview = strncmp(name, T7_USERMAP_PREVIEW_PREFIX, sizeof(T7_USERMAP_PREVIEW_PREFIX) - 1) == 0;
     const char* const map = name + (preview ? sizeof(T7_USERMAP_PREVIEW_PREFIX) : sizeof(T7_USERMAP_LOADING_PREFIX)) - 1;
@@ -205,8 +196,10 @@ static uint64_t MakePicture(const char* name, uint64_t into)
     if (!IsMapToken(map))
         return 0;
 
-    char path[256];
-    snprintf(path, sizeof(path), "%s/usermaps/%s/%s", Data_Dir(), map, file);
+    char path[320];
+
+    if (!T7Maps_MapFile(map, file, path, sizeof(path)))
+        return 0;
 
     size_t size = 0;
     uint8_t* const png = ReadWholeFile(path, &size);
@@ -215,20 +208,19 @@ static uint64_t MakePicture(const char* name, uint64_t into)
         return 0;
 
     PngImage picture;
-    const char* why = "";
-    const bool decoded = Png_Decode(png, size, &picture, &why);
-    free(png);
 
-    if (!decoded)
+    if (!Png_Open(png, size, &picture, nullptr))
+    {
+        free(png);
         return 0;
+    }
 
-    const uint64_t image = into ? into
-                                : ((DynamicImage_t)(g_base + kDynamicImage))((uint64_t)width, (uint64_t)height,
-                                                                             kPixelFormat, kImageFlags, name);
+    const uint64_t image = ((DynamicImage_t)(g_base + kDynamicImage))((uint64_t)width, (uint64_t)height, kPixelFormat,
+                                                                      kImageFlags, name);
 
     if (!image)
     {
-        Png_Free(&picture);
+        free(png);
         return 0;
     }
 
@@ -242,12 +234,20 @@ static uint64_t MakePicture(const char* name, uint64_t into)
     if (!pixels || imageWidth != width || imageHeight != height || pitch < width || pitch > width + 64 ||
         (uint64_t)pitch * 4 * (uint64_t)height > bytes)
     {
-        Png_Free(&picture);
-        return image;
+        free(png);
+        ReleaseImage(image);
+        return 0;
     }
 
-    WritePicture(picture, pixels, width, height, pitch);
-    Png_Free(&picture);
+    const bool written = WritePicture(picture, pixels, width, height, pitch);
+    free(png);
+
+    if (!written)
+    {
+        ReleaseImage(image);
+        return 0;
+    }
+
     return image;
 }
 
@@ -262,9 +262,9 @@ static bool IsPicture(uint64_t image)
     if (!image)
         return false;
 
-    for (const Picture& picture : g_pictures)
+    for (int i = 0; i < g_pictureCount; ++i)
     {
-        if (picture.image == image)
+        if (g_pictures[i].image == image)
             return true;
     }
 
@@ -274,37 +274,32 @@ static bool IsPicture(uint64_t image)
 static bool StillOurs(const Picture& picture)
 {
     return picture.image && *(uint8_t*)(picture.image + kSlotInUse) &&
-           strncmp((const char*)(picture.image + kSlotName), picture.created, 63) == 0;
+           strncmp((const char*)(picture.image + kSlotName), picture.name, 63) == 0;
 }
 
 static uint64_t PictureFor(const char* name)
 {
-    const bool preview = strncmp(name, T7_USERMAP_PREVIEW_PREFIX, sizeof(T7_USERMAP_PREVIEW_PREFIX) - 1) == 0;
-    Picture& picture = g_pictures[preview ? 0 : 1];
-
-    if (strlen(name) >= sizeof(picture.shown))
-        return 0;
-
-    if (picture.image && !StillOurs(picture))
+    for (int i = 0; i < g_pictureCount; ++i)
     {
-        picture.image = 0;
-        picture.shown[0] = 0;
+        Picture& picture = g_pictures[i];
+
+        if (strcmp(picture.name, name) != 0)
+            continue;
+
+        if (picture.image && !StillOurs(picture))
+            picture.image = MakePicture(name);
+
+        return picture.image;
     }
 
-    if (picture.image && strcmp(picture.shown, name) == 0)
-        return picture.image;
+    if (g_pictureCount >= kMaxPictures || strlen(name) >= sizeof(g_pictures[0].name))
+        return 0;
 
-    const uint64_t image = MakePicture(name, picture.image);
-
-    if (!image)
-        return picture.image;
-
-    if (!picture.image)
-        snprintf(picture.created, sizeof(picture.created), "%s", name);
-
-    picture.image = image;
-    snprintf(picture.shown, sizeof(picture.shown), "%s", name);
-    return image;
+    Picture& picture = g_pictures[g_pictureCount];
+    snprintf(picture.name, sizeof(picture.name), "%s", name);
+    picture.image = MakePicture(name);
+    ++g_pictureCount;
+    return picture.image;
 }
 
 static const char* StringArgument(uint64_t L, int index)
@@ -332,7 +327,7 @@ static uint64_t RegisterImage_h(uint64_t a1, uint64_t a2, uint64_t a3, uint64_t 
         uint64_t image = PictureFor(name);
 
         if (!image)
-            image = ((FindAsset_t)(g_base + kFindAsset))(kImageType, "$black", 1, (uint64_t)-1);
+            image = ((FindAsset_t)(g_base + kFindAsset))(kImageType, "$white", 1, (uint64_t)-1);
 
         if (image)
         {

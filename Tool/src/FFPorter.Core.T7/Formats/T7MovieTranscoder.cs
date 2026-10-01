@@ -27,11 +27,12 @@ public static unsafe class T7MovieTranscoder
         public long Frames, ExpectedFrames, LastPts = ffmpeg.AV_NOPTS_VALUE, LargestFrame;
         public string Name = "";
         public Action<string>? Log;
+        public Action<long, long>? Progress;
         public Stopwatch Clock = Stopwatch.StartNew();
-        public TimeSpan LastReport;
+        public TimeSpan LastReport, LastProgress;
     }
 
-    public static Outcome Prepare(string source, string target, Action<string> log)
+    public static Outcome Prepare(string source, string target, Action<string> log, Action<long, long>? progress = null)
     {
         string name = Path.GetFileName(source);
         IReadOnlyList<string> problems = T7Movie.Ps4Problems(source);
@@ -52,7 +53,7 @@ public static unsafe class T7MovieTranscoder
             return Outcome.UpToDate;
         }
         log($"  re-encoding for PS4: {string.Join("; ", problems)}");
-        Transcode(source, target, log);
+        Transcode(source, target, log, progress);
         IReadOnlyList<string> check = T7Movie.Ps4Problems(target);
         if (check.Count > 0)
         {
@@ -69,13 +70,13 @@ public static unsafe class T7MovieTranscoder
             && T7Movie.Describe(target)?.WritingApp == WritingApp && T7Movie.Ps4Problems(target).Count == 0;
     }
 
-    public static void Transcode(string input, string output, Action<string>? log = null)
+    public static void Transcode(string input, string output, Action<string>? log = null, Action<long, long>? progress = null)
     {
         ffmpeg.av_log_set_level(AvLogError);
         var s = new State
         {
             Packet = ffmpeg.av_packet_alloc(), Encoded = ffmpeg.av_packet_alloc(), Frame = ffmpeg.av_frame_alloc(), Filtered = ffmpeg.av_frame_alloc(),
-            Name = Path.GetFileName(output), Log = log,
+            Name = Path.GetFileName(output), Log = log, Progress = progress,
         };
         string temporary = output + ".part";
         try
@@ -258,6 +259,11 @@ public static unsafe class T7MovieTranscoder
             s.Filtered->pts = s.Frames++;
             Encode(s, s.Filtered);
             ffmpeg.av_frame_unref(s.Filtered);
+            if (s.Progress != null && s.Clock.Elapsed - s.LastProgress >= TimeSpan.FromMilliseconds(200))
+            {
+                s.LastProgress = s.Clock.Elapsed;
+                s.Progress(s.Frames, s.ExpectedFrames);
+            }
             if (s.Log != null && s.Clock.Elapsed - s.LastReport >= TimeSpan.FromSeconds(15))
             {
                 s.LastReport = s.Clock.Elapsed;

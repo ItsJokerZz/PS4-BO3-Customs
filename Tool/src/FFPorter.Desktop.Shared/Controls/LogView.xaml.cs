@@ -107,7 +107,7 @@ public partial class LogView : UserControl
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(Window.GetWindow(this)!, error.Message, "Save log", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageDialog.Inform(Window.GetWindow(this), DialogKind.Error, "Could not save the log", error.Message);
         }
     }
 

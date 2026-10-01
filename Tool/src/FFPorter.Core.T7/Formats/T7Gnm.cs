@@ -44,6 +44,10 @@ public static class T7Gnm
 
     public static bool IsKnownDxgi(uint dxgi) => DxgiToPs4.ContainsKey(dxgi);
 
+    public static bool TryPs4Format(uint dxgi, out int ps4) => DxgiToPs4.TryGetValue(dxgi, out ps4);
+
+    public static int TexelBytes(uint dxgi) => DxgiBc8.Contains(dxgi) || DxgiBc16.Contains(dxgi) ? 0 : DxgiTexelBytes.GetValueOrDefault(dxgi);
+
     public static long PcSurfaceSize(uint dxgi, int width, int height, int depth = 1)
     {
         if (DxgiBc8.Contains(dxgi))
@@ -279,6 +283,29 @@ public static class T7Gnm
                 {
                     long destination = ((long)(rowTiles + (x >> 3)) * 64 + Morton[mortonRow + (x & 7)]) * elementBytes;
                     src.Slice((y * linearWidth + x) * elementBytes, elementBytes).CopyTo(slice[(int)destination..]);
+                }
+            }
+        }
+    }
+
+    public static void DetileThin(ReadOnlySpan<byte> source, int linearWidth, int linearHeight, int linearDepth, int pitch, int height, int elementBytes, Span<byte> output)
+    {
+        int tilesPerRow = pitch / 8;
+        long tilesPerSlice = Math.Max((long)tilesPerRow * (height / 8), 1);
+        long sliceBytes = tilesPerSlice * 64 * elementBytes;
+        long perSlice = (long)linearWidth * linearHeight * elementBytes;
+        for (int z = 0; z < linearDepth; z++)
+        {
+            ReadOnlySpan<byte> slice = source.Slice((int)(z * sliceBytes), (int)sliceBytes);
+            Span<byte> destination = output.Slice((int)(z * perSlice), (int)perSlice);
+            for (int y = 0; y < linearHeight; y++)
+            {
+                int rowTiles = (y >> 3) * tilesPerRow;
+                int mortonRow = (y & 7) * 8;
+                for (int x = 0; x < linearWidth; x++)
+                {
+                    long from = ((long)(rowTiles + (x >> 3)) * 64 + Morton[mortonRow + (x & 7)]) * elementBytes;
+                    slice.Slice((int)from, elementBytes).CopyTo(destination[((y * linearWidth + x) * elementBytes)..]);
                 }
             }
         }

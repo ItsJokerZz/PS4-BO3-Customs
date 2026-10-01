@@ -110,6 +110,7 @@ public sealed class T7Gsc
     private void Remap(byte[] buffer, int start, int end)
     {
         int p = start;
+        string previous = "the function start";
         while (true)
         {
             p = (p + 1) & ~1;
@@ -117,10 +118,11 @@ public sealed class T7Gsc
                 break;
             ushort value = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(p));
             if (!_pc.TryGetValue(value, out var op))
-                throw new InvalidDataException($"invalid PC GSC opcode 0x{value:x4} at 0x{p:x}");
+                throw new InvalidDataException($"invalid PC GSC opcode 0x{value:x4} at 0x{p:x} in the function at 0x{start:x}..0x{end:x}, after {previous}");
             if (!_ps4.TryGetValue(op.Name, out ushort ps4))
                 throw new InvalidDataException($"GSC opcode {op.Name} has no PS4 value");
             BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(p), ps4);
+            previous = op.Operands.Length > 0 ? $"{op.Name} ({op.Operands}) at 0x{p:x}" : $"{op.Name} at 0x{p:x}";
             p = OperandEnd(buffer, op.Operands, p + 2);
         }
         if (p != end && ((end + 1) & ~1) != p)

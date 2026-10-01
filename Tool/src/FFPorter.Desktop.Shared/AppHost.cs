@@ -27,8 +27,15 @@ public static class AppHost
         var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
         app.DispatcherUnhandledException += (_, e) =>
         {
-            MessageBox.Show(e.Exception.Message, edition.Title, MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
+            try
+            {
+                MessageDialog.Inform(app.MainWindow, DialogKind.Error, "Something went wrong", e.Exception.Message);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(e.Exception.Message, edition.Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         };
         Theme.ThemeManager.Initialize(app);
         var window = new MainWindow();

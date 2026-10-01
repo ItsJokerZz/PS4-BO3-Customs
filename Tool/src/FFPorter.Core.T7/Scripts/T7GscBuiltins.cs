@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 
 namespace FFPorter.Core.T7.Scripts;
@@ -40,14 +41,44 @@ public sealed class T7GscBuiltins
         return hash * 0x01000193;
     }
 
-    public IReadOnlyList<string> Apply(byte[] buffer, string name)
+    public readonly record struct ScriptExport(uint Name, uint Space, int Parameters, int Flags);
+
+    public static IReadOnlyList<ScriptExport> Exports(ReadOnlySpan<byte> buffer)
+    {
+        int offset = (int)BinaryPrimitives.ReadUInt32LittleEndian(buffer[0x20..]);
+        int count = BinaryPrimitives.ReadUInt16LittleEndian(buffer[0x3A..]);
+        var exports = new ScriptExport[count];
+        for (int i = 0; i < count; i++)
+        {
+            ReadOnlySpan<byte> entry = buffer.Slice(offset + 20 * i, 20);
+            exports[i] = new ScriptExport(BinaryPrimitives.ReadUInt32LittleEndian(entry[8..]), BinaryPrimitives.ReadUInt32LittleEndian(entry[12..]), entry[16], entry[17]);
+        }
+        return exports;
+    }
+
+    public static IReadOnlyList<string> Includes(ReadOnlySpan<byte> buffer)
+    {
+        int offset = (int)BinaryPrimitives.ReadUInt32LittleEndian(buffer[0x0C..]);
+        var includes = new List<string>();
+        for (int i = 0; i < buffer[0x44]; i++)
+        {
+            ReadOnlySpan<byte> text = buffer[(int)BinaryPrimitives.ReadUInt32LittleEndian(buffer[(offset + 4 * i)..])..];
+            int end = text.IndexOf((byte)0);
+            if (end > 0)
+                includes.Add(Encoding.Latin1.GetString(text[..end]));
+        }
+        return includes;
+    }
+
+    public IReadOnlyList<string> Apply(byte[] buffer, string name, Func<string, IReadOnlyList<ScriptExport>?>? scriptExports = null)
     {
         string side = name.EndsWith(".csc", StringComparison.OrdinalIgnoreCase) ? "csc" : "gsc";
-        int exportsOffset = (int)Read32(buffer, 0x20), importsOffset = (int)Read32(buffer, 0x24);
-        int exportCount = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(0x3A)), importCount = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(0x3C));
-        var exports = new HashSet<(uint Name, uint Space)>();
-        for (int i = 0; i < exportCount; i++)
-            exports.Add((Read32(buffer, exportsOffset + 20 * i + 8), Read32(buffer, exportsOffset + 20 * i + 12)));
+        int importsOffset = (int)Read32(buffer, 0x24);
+        int importCount = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(0x3C));
+        IReadOnlyList<ScriptExport> exports = Exports(buffer);
+        List<IReadOnlyList<ScriptExport>> included = scriptExports == null
+            ? []
+            : Includes(buffer).Select(include => scriptExports($"{include}.{side}")).OfType<IReadOnlyList<ScriptExport>>().ToList();
         var changes = new List<string>();
         var errors = new List<string>();
         int at = importsOffset;
@@ -60,7 +91,7 @@ public sealed class T7GscBuiltins
             at += 12 + 4 * references;
             if (kind is not (KindPointer or KindCall or KindMethod) || (space is not (BuiltinSpaceA or BuiltinSpaceB) && (flags & 0x20) == 0))
                 continue;
-            if (exports.Contains((function, space)))
+            if (Resolves(exports, function, space, parameters, kind, own: true) || included.Any(scripts => Resolves(scripts, function, space, parameters, kind, own: false)))
                 continue;
             if (_pcOnly.TryGetValue(function, out var pcOnly))
             {
@@ -85,6 +116,15 @@ public sealed class T7GscBuiltins
         if (errors.Count > 0)
             throw new InvalidDataException($"script '{name}' {string.Join("; ", errors.Distinct())}. The PS4 linker rejects it and the level fails to load (\"**** 1 script error(s)\")");
         return changes.Distinct().ToList();
+    }
+
+    private static bool Resolves(IReadOnlyList<ScriptExport> exports, uint function, uint space, int parameters, int kind, bool own)
+    {
+        foreach (ScriptExport export in exports)
+            if (export.Name == function && export.Space == space && (own || (export.Flags & 4) == 0)
+                && (kind == KindPointer || parameters <= export.Parameters || (export.Flags & 0x20) != 0))
+                return true;
+        return false;
     }
 
     private (int Min, int Max)? Find(string side, int kind, uint function)

@@ -1,50 +1,47 @@
 #include "headers.hpp"
+#include <string.h>
+#include <stdarg.h>
+#include <stdint.h>
 
-namespace
-{
-uint64_t g_execStart = 0;
-uint64_t g_execEnd = 0;
-uint64_t g_moduleEnd = 0;
+namespace {
+    uint64_t g_execStart = 0;
+    uint64_t g_execEnd = 0;
+    uint64_t g_moduleEnd = 0;
 
-enum NotificationType
-{
-    kNotificationRequest = 0,
-    kNotificationRequestWithIcon = 1,
-};
+    enum NotificationType {
+        kNotificationRequest = 0,
+        kNotificationRequestWithIcon = 1,
+    };
 
-struct NotificationRequest
-{
-    NotificationType type;
-    int32_t reqId;
-    int32_t priority;
-    int32_t msgId;
-    int32_t targetId;
-    int32_t userId;
-    int32_t unk1;
-    int32_t unk2;
-    int32_t appId;
-    int32_t errorNum;
-    int32_t unk3;
-    uint8_t useIconImageUri;
-    char message[1024];
-    char iconUri[1024];
-    char unk[1024];
-};
+    struct NotificationRequest {
+        NotificationType type;
+        int32_t reqId;
+        int32_t priority;
+        int32_t msgId;
+        int32_t targetId;
+        int32_t userId;
+        int32_t unk1;
+        int32_t unk2;
+        int32_t appId;
+        int32_t errorNum;
+        int32_t unk3;
+        uint8_t useIconImageUri;
+        char message[1024];
+        char iconUri[1024];
+        char unk[1024];
+    };
 
-using SendNotification_t = int (*)(int, void*, size_t, int);
-
-SendNotification_t g_sendNotification = nullptr;
-bool g_notificationReady = false;
+    using SendNotification_t = int (*)(int, void*, size_t, int);
+    SendNotification_t g_sendNotification = nullptr;
+    bool g_notificationReady = false;
 }
 
-extern "C"
-{
-int sceKernelSendNotificationRequest(int device, void* request, size_t size, int block);
-int mdbg_service(int command, void* arg1, void* arg2);
+extern "C" {
+    int sceKernelSendNotificationRequest(int device, void* request, size_t size, int block);
+    int mdbg_service(int command, void* arg1, void* arg2);
 }
 
-uint64_t GetBaseAddress()
-{
+uint64_t GetBaseAddress() {
     static uint64_t cached = 0;
 
     if (cached)
@@ -53,8 +50,7 @@ uint64_t GetBaseAddress()
     SceKernelVirtualQueryInfo info;
     void* address = nullptr;
 
-    while (sceKernelVirtualQuery(address, SCE_KERNEL_VQ_FIND_NEXT, &info, sizeof(info)) >= 0)
-    {
+    while (sceKernelVirtualQuery(address, SCE_KERNEL_VQ_FIND_NEXT, &info, sizeof(info)) >= 0) {
         const uintptr_t start = (uintptr_t)info.start;
         const uintptr_t end = (uintptr_t)info.end;
 
@@ -74,8 +70,7 @@ uint64_t GetBaseAddress()
         SceKernelVirtualQueryInfo next;
         uintptr_t probe = end;
 
-        for (int hop = 0; hop < 16; ++hop)
-        {
+        for (int hop = 0; hop < 16; ++hop) {
             if (sceKernelVirtualQuery((void*)probe, 0, &next, sizeof(next)) < 0)
                 break;
 
@@ -95,8 +90,7 @@ uint64_t GetBaseAddress()
     return 0;
 }
 
-static uintptr_t ReadableEnd(uintptr_t addr, size_t need)
-{
+static uintptr_t ReadableEnd(uintptr_t addr, size_t need) {
     if (addr < 0x10000 || addr >= 0x0000800000000000ULL || addr + need < addr)
         return 0;
 
@@ -104,8 +98,7 @@ static uintptr_t ReadableEnd(uintptr_t addr, size_t need)
     uintptr_t end = 0;
     uintptr_t probe = addr;
 
-    for (int hop = 0; hop < 8; ++hop)
-    {
+    for (int hop = 0; hop < 8; ++hop) {
         if (sceKernelVirtualQuery((void*)probe, 0, &info, sizeof(info)) < 0)
             break;
 
@@ -128,8 +121,7 @@ static uintptr_t ReadableEnd(uintptr_t addr, size_t need)
     return end;
 }
 
-bool RangeReadable(uintptr_t addr, size_t span)
-{
+bool RangeReadable(uintptr_t addr, size_t span) {
     if (!addr || addr + span < addr)
         return false;
 
@@ -137,8 +129,7 @@ bool RangeReadable(uintptr_t addr, size_t span)
     return end != 0 && (addr + span) <= end;
 }
 
-bool SafeStrStr(uintptr_t addr, const char* target, size_t maxScan)
-{
+bool SafeStrStr(uintptr_t addr, const char* target, size_t maxScan) {
     if (addr < 0x10000 || addr >= 0x0000800000000000ULL || !target)
         return false;
 
@@ -162,8 +153,7 @@ bool SafeStrStr(uintptr_t addr, const char* target, size_t maxScan)
 
     const char* const text = (const char*)addr;
 
-    for (size_t i = 0; i + length <= available; ++i)
-    {
+    for (size_t i = 0; i + length <= available; ++i) {
         if (text[i] == 0)
             return false;
 
@@ -179,15 +169,8 @@ bool SafeStrStr(uintptr_t addr, const char* target, size_t maxScan)
     return false;
 }
 
-const char* Data_Dir()
-{
-    return BO3_ROOT_DIR;
-}
-
-void Notify(const char* fmt, ...)
-{
-    if (!g_notificationReady)
-    {
+void Notify(const char* fmt, ...) {
+    if (!g_notificationReady) {
         g_notificationReady = true;
 
         void* address = nullptr;

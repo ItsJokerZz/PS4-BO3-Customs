@@ -35,6 +35,8 @@ public abstract class Edition
     {
     }
 
+    public virtual IReadOnlyList<string> CacheFolders() => [];
+
     public abstract bool Accepts(string file, out string? why);
 
     public abstract IEnumerable<Job> Jobs(IReadOnlyList<string> files);

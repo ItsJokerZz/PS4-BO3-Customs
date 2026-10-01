@@ -9678,7 +9678,7 @@
   },
   {
    "name": "WaitTill",
-   "operands": "",
+   "operands": "u8",
    "pc_handler": "7ff615b44510",
    "ps4_handler": "77d460",
    "pc_v1c_values": [

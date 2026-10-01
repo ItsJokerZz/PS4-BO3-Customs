@@ -201,7 +201,7 @@ public static class T7Cli
         var fidelity = new FFPorter.Core.T7.Port.T7Fidelity(stem, options.Flag("--progress")
             ? snapshot => stdout.WriteLine(FFPorter.Core.Common.Fidelity.FidelityProtocol.Format(snapshot))
             : null);
-        fidelity.Tracker.Stage("Loading reference zones", "PS4 and PC reference data");
+        fidelity.Prepare();
 
         var donorFiles = new List<string>();
         var ps4XPaks = new List<string>();
@@ -243,6 +243,7 @@ public static class T7Cli
                     + "Convert a map or zone from inside the game folder once (its zone folder is remembered), or pass --pc-reference <BO3 zone folder>.";
                 stderr.WriteLine(why);
                 fidelity.Tracker.Problem(why);
+                fidelity.Fail();
                 FFPorter.Core.Common.Fidelity.FidelitySnapshot stopped = fidelity.Tracker.Finish(FFPorter.Core.Common.Fidelity.FidelityStates.Failed,
                     "Nothing was converted: Black Ops III's game files (its zone folder) were not found.");
                 WriteFidelity(stopped, stdout);

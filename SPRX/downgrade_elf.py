@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# (c) flatz
-
 import sys, os, struct
 import argparse
 import shutil

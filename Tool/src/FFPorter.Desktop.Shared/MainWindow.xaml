@@ -98,14 +98,18 @@
                    SelectionChanged="JobSelectionChanged" KeyDown="JobListKeyDown">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ToolTip="{Binding MainFile}">
+                <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
                   <Ellipse Style="{StaticResource StatusDot}" Tag="{Binding State}" VerticalAlignment="Top" Margin="0,6,12,0"/>
-                  <StackPanel Grid.Column="1">
+                  <StackPanel Grid.Column="1" ToolTip="{Binding MainFile}" Background="Transparent">
                     <StackPanel Orientation="Horizontal">
                       <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis"/>
                       <Border Style="{StaticResource Chip}" Margin="8,0,0,0" Padding="6,0,6,1">
@@ -128,6 +132,98 @@
                     <TextBlock Text="{Binding StatusText}" Style="{StaticResource Text.Caption}" HorizontalAlignment="Right" Margin="0,2,0,0"/>
                     <TextBlock Text="{Binding Size}" Style="{StaticResource Text.Caption}" HorizontalAlignment="Right"/>
                   </StackPanel>
+                  <ItemsControl Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ItemsSource="{Binding Report.Steps}" Margin="0,12,0,0" Focusable="False">
+                    <ItemsControl.Style>
+                      <Style TargetType="ItemsControl">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                          <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                              <Condition Binding="{Binding Report.HasSteps}" Value="True"/>
+                              <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible"/>
+                          </MultiDataTrigger>
+                          <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                              <Condition Binding="{Binding Report.HasSteps}" Value="True"/>
+                              <Condition Binding="{Binding IsRunning}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible"/>
+                          </MultiDataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid Margin="0,0,0,7">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="72"/>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="54"/>
+                          </Grid.ColumnDefinitions>
+                          <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                          </Grid.RowDefinitions>
+                          <Grid Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Ellipse x:Name="Ring" Width="8" Height="8" Stroke="{DynamicResource Border.Strong}" StrokeThickness="1.3" Visibility="Collapsed"/>
+                            <Ellipse x:Name="Dot" Style="{StaticResource StatusDot}" Tag="{Binding State}" Visibility="Collapsed"/>
+                            <TextBlock x:Name="Glyph" Style="{StaticResource Text.Icon}" FontSize="11" HorizontalAlignment="Center" Visibility="Collapsed"/>
+                          </Grid>
+                          <TextBlock x:Name="StepTitle" Grid.Column="1" Text="{Binding Title}" FontSize="12.5" Foreground="{DynamicResource Text.Primary}"
+                                     TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Title}"/>
+                          <ProgressBar x:Name="Bar" Grid.Column="2" Height="3" Maximum="1" Value="{Binding Progress, Mode=OneWay}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                          <TextBlock Grid.Column="3" Text="{Binding PercentText}" Style="{StaticResource Text.Caption}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                     Typography.NumeralAlignment="Tabular"/>
+                          <TextBlock Grid.Column="4" Text="{Binding ElapsedText}" Style="{StaticResource Text.Caption}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                     Typography.NumeralAlignment="Tabular"/>
+                          <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" Text="{Binding Detail}" Style="{StaticResource Text.Caption}" FontSize="11.5"
+                                     TextTrimming="CharacterEllipsis" Margin="0,3,0,0" ToolTip="{Binding Detail}"
+                                     Visibility="{Binding HasDetail, Converter={StaticResource Visible}}"/>
+                        </Grid>
+                        <DataTemplate.Triggers>
+                          <DataTrigger Binding="{Binding State}" Value="waiting">
+                            <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="StepTitle" Property="Foreground" Value="{DynamicResource Text.Muted}"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="running">
+                            <Setter TargetName="Dot" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="StepTitle" Property="FontWeight" Value="SemiBold"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="done">
+                            <Setter TargetName="Glyph" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Glyph" Property="Text" Value="&#xE73E;"/>
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource Status.Success}"/>
+                            <Setter TargetName="StepTitle" Property="Foreground" Value="{DynamicResource Text.Secondary}"/>
+                            <Setter TargetName="Bar" Property="Foreground" Value="{DynamicResource Status.Success}"/>
+                            <Setter TargetName="Bar" Property="Opacity" Value="0.5"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="failed">
+                            <Setter TargetName="Glyph" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Glyph" Property="Text" Value="&#xE711;"/>
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource Status.Error}"/>
+                            <Setter TargetName="Bar" Property="Foreground" Value="{DynamicResource Status.Error}"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="skipped">
+                            <Setter TargetName="Glyph" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Glyph" Property="Text" Value="&#xE738;"/>
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource Text.Muted}"/>
+                            <Setter TargetName="StepTitle" Property="Foreground" Value="{DynamicResource Text.Muted}"/>
+                            <Setter TargetName="Bar" Property="Opacity" Value="0.4"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="cancelled">
+                            <Setter TargetName="Glyph" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Glyph" Property="Text" Value="&#xE71A;"/>
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource Status.Warning}"/>
+                            <Setter TargetName="Bar" Property="Foreground" Value="{DynamicResource Status.Warning}"/>
+                          </DataTrigger>
+                        </DataTemplate.Triggers>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -165,6 +261,10 @@
           <ProgressBar x:Name="Progress" Maximum="1" Margin="0,9,0,0" Visibility="Hidden"/>
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="ClearCacheButton" Style="{StaticResource Button.Ghost}" Margin="0,0,4,0" Click="ClearCacheClick"
+                  ToolTip="Delete the saved work that makes conversions faster (compiled shaders, zone reads, converted sound). The next conversion is slower while it is rebuilt.">
+            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="&#xEA99;" Margin="0,0,8,0"/><TextBlock Text="Clear cache"/></StackPanel>
+          </Button>
           <ToggleButton x:Name="LogToggle" Style="{StaticResource Toggle.Ghost}" Checked="LogToggled" Unchecked="LogToggled" ToolTip="Show everything the converter printed">
             <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="&#xE756;" Margin="0,0,8,0"/><TextBlock Text="Log"/></StackPanel>
           </ToggleButton>
@@ -178,5 +278,20 @@
         </StackPanel>
       </Grid>
     </Border>
+
+    <Grid x:Name="PrepareOverlay" Grid.RowSpan="4" Margin="-28,-20,-28,-20" Background="{DynamicResource Bg.Overlay}" Panel.ZIndex="10" Visibility="Collapsed">
+      <Border Style="{StaticResource Card}" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,22">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE896;" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBlock Text="Preparing files" Style="{StaticResource Text.Heading}" FontSize="15"/>
+          </StackPanel>
+          <TextBlock Style="{StaticResource Text.Body}" TextWrapping="Wrap" Margin="0,10,0,0"
+                     Text="Setting up the tools the converter uses. This only happens the first time the app runs."/>
+          <ProgressBar IsIndeterminate="True" Margin="0,16,0,0"/>
+          <TextBlock x:Name="PrepareDetail" Style="{StaticResource Text.Caption}" TextTrimming="CharacterEllipsis" Margin="0,10,0,0"/>
+        </StackPanel>
+      </Border>
+    </Grid>
   </Grid>
 </Window>

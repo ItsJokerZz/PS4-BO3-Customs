@@ -17,5 +17,16 @@ public static class CliFidelity
             foreach (FidelityNote note in part.Notes)
                 stdout.WriteLine($"  {"",-10} {"",-18} [{note.Grade}] {note.Text}");
         }
+        if (report.Steps is not { Count: > 0 } steps)
+            return;
+        stdout.WriteLine("steps, in the order they ran:");
+        foreach (FidelityStepReport step in steps)
+            stdout.WriteLine($"  {step.State,-9} {Elapsed(step.ElapsedSeconds),8}  {step.Title}");
+    }
+
+    private static string Elapsed(double seconds)
+    {
+        var time = TimeSpan.FromSeconds(seconds);
+        return time.TotalHours >= 1 ? $"{(int)time.TotalHours}h {time.Minutes:00}m" : time.TotalMinutes >= 1 ? $"{(int)time.TotalMinutes}m {time.Seconds:00}s" : $"{time.TotalSeconds:0.0}s";
     }
 }

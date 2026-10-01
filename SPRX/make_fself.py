@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys, os, struct, traceback
 import hashlib, hmac
 import argparse, re, string

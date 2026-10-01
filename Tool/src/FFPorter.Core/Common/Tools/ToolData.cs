@@ -11,6 +11,7 @@ public static class ToolData
     private static readonly object Gate = new();
     private static bool _extracted;
     private static bool _repaired;
+    private static HashSet<string>? _entries;
 
     public static string ShippedRoot => Path.Combine(AppContext.BaseDirectory, FolderName);
 
@@ -37,7 +38,7 @@ public static class ToolData
         string extracted = Path.Combine(Extract(), native);
         if (Exists(extracted))
             return extracted;
-        if (Repair())
+        if (Knows(native) && Repair())
         {
             extracted = Path.Combine(Extract(), native);
             if (Exists(extracted))
@@ -78,6 +79,32 @@ public static class ToolData
         return root;
     }
 
+    private static bool Knows(string relative)
+    {
+        lock (Gate)
+        {
+            if (_entries == null)
+            {
+                _entries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach ((Assembly assembly, string resource) in Archives)
+                {
+                    using Stream? stream = assembly.GetManifestResourceStream(resource);
+                    if (stream == null)
+                        continue;
+                    using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+                    foreach (ZipArchiveEntry entry in archive.Entries)
+                    {
+                        string name = entry.FullName.Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
+                        _entries.Add(name);
+                        for (int at = name.IndexOf(Path.DirectorySeparatorChar); at > 0; at = name.IndexOf(Path.DirectorySeparatorChar, at + 1))
+                            _entries.Add(name[..at]);
+                    }
+                }
+            }
+            return _entries.Contains(relative);
+        }
+    }
+
     private static bool Repair()
     {
         lock (Gate)
@@ -107,14 +134,33 @@ public static class ToolData
         }
     }
 
+    private static void Hide(string directory)
+    {
+        try
+        {
+            var info = new DirectoryInfo(directory);
+            if (info.Exists && (info.Attributes & FileAttributes.Hidden) == 0)
+                info.Attributes |= FileAttributes.Hidden;
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
     private static void Unpack(Assembly assembly, string resource, string root)
     {
         using Stream? stream = assembly.GetManifestResourceStream(resource);
         if (stream == null)
             return;
-        string marker = Path.Combine(root, ".shipped", $"{resource}.{stream.Length}");
+        string stamp;
+        using (var sha = System.Security.Cryptography.SHA256.Create())
+            stamp = Convert.ToHexStringLower(sha.ComputeHash(stream))[..16];
+        stream.Position = 0;
+        string marker = Path.Combine(root, ".shipped", $"{resource}.{stamp}");
         if (File.Exists(marker))
+        {
+            Hide(Path.GetDirectoryName(marker)!);
             return;
+        }
         using var gate = new Mutex(false, "Local\\" + resource);
         bool held = false;
         try
@@ -137,14 +183,20 @@ public static class ToolData
                 string target = Path.GetFullPath(Path.Combine(root, entry.FullName.Replace('/', Path.DirectorySeparatorChar)));
                 if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
                     continue;
-                if (File.Exists(target) && new FileInfo(target).Length == entry.Length)
-                    continue;
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 string temporary = target + ".part";
                 entry.ExtractToFile(temporary, true);
                 File.Move(temporary, target, true);
             }
             Directory.CreateDirectory(Path.GetDirectoryName(marker)!);
+            Hide(Path.GetDirectoryName(marker)!);
+            foreach (string stale in Directory.EnumerateFiles(Path.GetDirectoryName(marker)!, resource + ".*"))
+            {
+                if (!string.Equals(stale, marker, StringComparison.OrdinalIgnoreCase))
+                {
+                    try { File.Delete(stale); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+                }
+            }
             File.WriteAllText(marker, assembly.GetName().Name + Environment.NewLine);
         }
         finally

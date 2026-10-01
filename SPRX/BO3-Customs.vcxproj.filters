@@ -19,10 +19,19 @@
     <ClCompile Include="t7_lua.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="t7_kbm.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="t7_log.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="t7_mapimages.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="t7_maps.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="libjbc.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,10 +57,22 @@
     <ClInclude Include="t7_lua.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="t7_kbm.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="t7_kbm_strings.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="t7_log.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="t7_mapimages.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="t7_maps.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="libjbc.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

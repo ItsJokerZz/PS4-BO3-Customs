@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using FFPorter.Core;
 using FFPorter.Core.Common.Fidelity;
+using FFPorter.Core.Common.Tools;
 using FFPorter.Desktop.Models;
 using FFPorter.Desktop.Services;
 using FFPorter.Desktop.Theme;
@@ -21,7 +22,8 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<Job> _jobs = [];
     private readonly BackendProcess _backend = new();
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
-    private bool _running, _stop;
+    private bool _running, _stop, _clearing;
+    private readonly bool _firstRun = !Directory.Exists(Workspace.WorkDirectory);
     private Job? _current, _shown;
     private int _index, _count;
     private DateTime _started;
@@ -100,7 +102,7 @@ public partial class MainWindow : Window
         CountText.Text = _jobs.Count.ToString();
         EmptyQueue.Visibility = _jobs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         JobList.Visibility = _jobs.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        ConvertButton.IsEnabled = !_running && _jobs.Count > 0;
+        ConvertButton.IsEnabled = !_running && !_clearing && _jobs.Count > 0;
         RemoveButton.IsEnabled = ClearButton.IsEnabled = !_running && _jobs.Count > 0;
         if (!_running)
         {
@@ -197,7 +199,7 @@ public partial class MainWindow : Window
 
     private async Task ConvertAll()
     {
-        if (_running || _jobs.Count == 0)
+        if (_running || _clearing || _jobs.Count == 0)
             return;
         string workspace = Settings.Workspace;
         try
@@ -342,6 +344,7 @@ public partial class MainWindow : Window
     {
         if (!_running)
             return;
+        _current?.Report?.Tick();
         double itemProgress = _current?.Progress ?? 0;
         double overall = _count == 0 ? 0 : Math.Clamp((_index + itemProgress) / _count, 0, 1);
         string position = _count > 1 ? $"{_index + 1} of {_count} · " : "";
@@ -362,7 +365,7 @@ public partial class MainWindow : Window
     private void SetBusy(bool busy)
     {
         _running = busy;
-        AddFilesButton.IsEnabled = AddFolderButton.IsEnabled = OutputButton.IsEnabled = GameFolderButton.IsEnabled = !busy;
+        AddFilesButton.IsEnabled = AddFolderButton.IsEnabled = OutputButton.IsEnabled = GameFolderButton.IsEnabled = ClearCacheButton.IsEnabled = !busy;
         RemoveButton.IsEnabled = ClearButton.IsEnabled = !busy && _jobs.Count > 0;
         ConvertButton.IsEnabled = !busy && _jobs.Count > 0;
         ConvertButton.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;
@@ -404,17 +407,40 @@ public partial class MainWindow : Window
     {
         if (!Settings.FirstRun || Settings.GameFolder != null)
             return;
-        MessageBoxResult answer = MessageBox.Show(this,
-            $"{Edition.Title} needs your {Edition.GameName} files to convert with.\n\n{Edition.GameFolderHint}\n\nChoose that folder now?",
-            Edition.Title, MessageBoxButton.YesNo, MessageBoxImage.Information);
-        if (answer == MessageBoxResult.Yes)
+        bool choose = MessageDialog.Confirm(this, DialogKind.Info, $"Choose your {Edition.GameName} files",
+            $"{Edition.Title} needs them to convert with.\n\n{Edition.GameFolderHint}", "Choose folder", "Not now");
+        if (choose)
             ChooseGameFolder();
         else
             SetStatus($"{Edition.GameFolderName} not set", "the Game files button in the header sets it");
     }
 
-    private void PrepareTools() =>
-        Task.Run(() => Edition.PrepareTools(line => Dispatcher.Invoke(() => Log.Append(line))));
+    private async void PrepareTools()
+    {
+        Task work = Task.Run(() =>
+        {
+            Ps4Sdk.EnsureFiles();
+            Dispatcher.Invoke(() => PrepareDetail.Text = "Extracting files…");
+            ToolData.Extract();
+            Dispatcher.Invoke(() => PrepareDetail.Text = "Setting up tools…");
+            Edition.PrepareTools(line => Dispatcher.Invoke(() =>
+            {
+                Log.Append(line);
+                PrepareDetail.Text = line;
+            }));
+        });
+        if (_firstRun || await Task.WhenAny(work, Task.Delay(400)) != work)
+            PrepareOverlay.Visibility = Visibility.Visible;
+        try
+        {
+            await work;
+        }
+        catch (Exception error)
+        {
+            Log.Append($"Preparing files failed: {error.Message}");
+        }
+        PrepareOverlay.Visibility = Visibility.Collapsed;
+    }
 
     private void ChooseGameFolderClick(object sender, RoutedEventArgs e) => ChooseGameFolder();
 
@@ -436,8 +462,8 @@ public partial class MainWindow : Window
                 SetStatus($"{Edition.GameFolderName} set", folder);
                 return;
             }
-            if (MessageBox.Show(this, $"{dialog.FolderName}\n\nis not the {Edition.GameFolderName}. {Edition.GameFolderHint}\n\nTry again?",
-                Edition.Title, MessageBoxButton.RetryCancel, MessageBoxImage.Warning) != MessageBoxResult.Retry)
+            if (!MessageDialog.Confirm(this, DialogKind.Warning, $"That folder is not the {Edition.GameFolderName}",
+                $"{dialog.FolderName}\n\n{Edition.GameFolderHint}", "Try again"))
             {
                 return;
             }
@@ -509,6 +535,90 @@ public partial class MainWindow : Window
     }
 
     private void LogToggled(object sender, RoutedEventArgs e) => Log.Visibility = LogToggle.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+
+    private async void ClearCacheClick(object sender, RoutedEventArgs e)
+    {
+        if (_running || _clearing)
+            return;
+        SetClearing(true);
+        try
+        {
+            (IReadOnlyList<string> folders, long size) = await Task.Run(() =>
+            {
+                IReadOnlyList<string> found = Edition.CacheFolders();
+                return (found, found.Sum(FolderSize));
+            });
+            if (size == 0)
+            {
+                SetStatus("The cache is already empty", "");
+                return;
+            }
+            if (!MessageDialog.Confirm(this, DialogKind.Warning, "Clear the tool cache?",
+                $"This deletes {Job.SizeText(size)} of saved work that makes conversions faster: compiled shaders, what was read from "
+                + $"{Edition.GameName}'s zones, and each map's saved zone reads and sound. The next conversion takes longer while it is rebuilt.\n\n"
+                + "Converted files, reports and settings are kept.",
+                "Clear cache", danger: true))
+            {
+                return;
+            }
+            SetStatus("Clearing the cache", Job.SizeText(size));
+            List<string> failed = await Task.Run(() => DeleteFolders(folders));
+            if (failed.Count == 0)
+            {
+                SetStatus("Cache cleared", $"{Job.SizeText(size)} freed");
+                return;
+            }
+            foreach (string problem in failed)
+                Log.Append($"Could not clear {problem}");
+            LogToggle.IsChecked = true;
+            SetStatus("Cache partly cleared", $"{failed.Count} folder{(failed.Count == 1 ? "" : "s")} could not be deleted; the log says why");
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            SetStatus("Could not clear the cache", error.Message);
+        }
+        finally
+        {
+            SetClearing(false);
+        }
+    }
+
+    private void SetClearing(bool clearing)
+    {
+        _clearing = clearing;
+        ClearCacheButton.IsEnabled = !clearing;
+        ConvertButton.IsEnabled = !clearing && _jobs.Count > 0;
+    }
+
+    private static long FolderSize(string folder)
+    {
+        try
+        {
+            return new DirectoryInfo(folder).EnumerateFiles("*", new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0, IgnoreInaccessible = true })
+                .Sum(file => file.Length);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            return 0;
+        }
+    }
+
+    private static List<string> DeleteFolders(IEnumerable<string> folders)
+    {
+        var failed = new List<string>();
+        foreach (string folder in folders)
+        {
+            try
+            {
+                Directory.Delete(folder, recursive: true);
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                failed.Add($"{Path.GetFileName(folder)}: {error.Message}");
+            }
+        }
+        return failed;
+    }
 
     private static string Elapsed(TimeSpan time) =>
         time.TotalHours >= 1 ? $"{(int)time.TotalHours}h {time.Minutes:00}m" : time.TotalMinutes >= 1 ? $"{(int)time.TotalMinutes}m {time.Seconds:00}s" : $"{time.Seconds}s";

@@ -1,7 +1,4 @@
 #include "headers.hpp"
-#include "t7_maps.hpp"
-#include "t7_mapimages.hpp"
-#include "t7_lua.hpp"
 
 namespace
 {
@@ -47,16 +44,55 @@ uintptr_t WaitForBlackOps3()
 }
 }
 
+extern "C" const char* sceKernelGetFsSandboxRandomWord();
+
 static void* start_thread(void*)
 {
-    const uintptr_t base = WaitForBlackOps3();
+   const uintptr_t base = WaitForBlackOps3();
 
-    if (!base)
+   if (!base)
         return nullptr;
 
+   const char* rand = sceKernelGetFsSandboxRandomWord();
+
+   char path[256 * 2];
+   snprintf(path, sizeof(path), "/%s/common/lib/libSceNotification.sprx", rand);
+
+   bool is_ps5 = false;
+   int fd = sceKernelOpen(path, SCE_KERNEL_O_RDONLY, 0);
+
+   if (fd >= 0)
+   {
+       is_ps5 = true;
+       sceKernelClose(fd);
+   }
+
+   if (!is_ps5)
+   {
+       for (const char* const drive : k_driveRoots)
+       {
+           char mnt[128];
+           int len = snprintf(mnt, sizeof(mnt), "/mnt/%s", drive);
+
+           if (len < 0 || static_cast<size_t>(len) >= sizeof(mnt))
+               continue;
+
+           char sandboxPath[128];
+           len = snprintf(sandboxPath, sizeof(sandboxPath), "/%s", drive);
+
+           if (len < 0 || static_cast<size_t>(len) >= sizeof(sandboxPath))
+               continue;
+           
+           jbc_mount_in_sandbox(mnt, drive);
+       }
+   }
+
+    T7Log_Install(base);
     T7Maps_Install(base);
     T7MapImages_Install(base);
     T7Lua_Install(base);
+    T7Kbm_Install(base);
+    T7Log_Write("[Maps] %d custom map(s) found", T7Maps_MapCount());
 
     if (RangeReadable(base + kComFrame, sizeof(k_comFrame)) &&
         memcmp((const void*)(base + kComFrame), k_comFrame, sizeof(k_comFrame)) == 0)
@@ -64,7 +100,15 @@ static void* start_thread(void*)
         Detour_Attach(&g_frameDetour, (uint64_t)(base + kComFrame), (void*)Frame_h, &g_frameOriginal);
     }
 
-    Notify("BO3 Customs Mod by ItsJokerZz loaded!");
+    if (T7Maps_MapCount() < 0)
+        Notify("BO3 Customs Mod loaded!\nCreated by ItsJokerZz. This game build is not supported - it needs version 1.33");
+    else
+    {
+        char buff[256];
+        snprintf(buff, sizeof(buff), "BO3 Customs Mod loaded!\nCreated by ItsJokerZz.\nFound %d custom map(s)", T7Maps_MapCount());
+        Notify(buff);
+    }
+
     return nullptr;
 }
 

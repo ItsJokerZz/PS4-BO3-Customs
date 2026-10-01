@@ -1,0 +1,30 @@
+<Window x:Class="FFPorter.Desktop.MessageDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="460" SizeToContent="Height" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Bg.Surface}" Foreground="{DynamicResource Text.Primary}" FontFamily="Segoe UI" FontSize="13"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display" FocusManager.FocusedElement="{Binding ElementName=ConfirmButton}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid Margin="24,22,28,24">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock x:Name="IconText" Style="{StaticResource Text.Icon}" FontSize="26" VerticalAlignment="Top" Margin="0,0,16,0"/>
+      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+        <TextBlock x:Name="HeadingText" Style="{StaticResource Text.Heading}" FontSize="15" TextWrapping="Wrap"/>
+        <ScrollViewer x:Name="BodyScroll" MaxHeight="360" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+          <TextBlock x:Name="BodyText" Style="{StaticResource Text.Body}"/>
+        </ScrollViewer>
+      </StackPanel>
+    </Grid>
+    <Border Grid.Row="1" Background="{DynamicResource Bg.App}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,1,0,0" Padding="24,14">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button x:Name="CancelButton" IsCancel="True" MinWidth="96" MinHeight="36"/>
+        <Button x:Name="ConfirmButton" Style="{StaticResource Button.Primary}" IsDefault="True" MinWidth="96" Margin="8,0,0,0" Click="ConfirmClick"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

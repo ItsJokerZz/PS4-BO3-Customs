@@ -66,6 +66,11 @@ public static class FidelityStates
     public const string Running = "running", Done = "done", Failed = "failed", Cancelled = "cancelled";
 }
 
+public static class FidelityStepStates
+{
+    public const string Waiting = "waiting", Running = "running", Done = "done", Failed = "failed", Skipped = "skipped", Cancelled = "cancelled";
+}
+
 public sealed class FidelitySnapshot
 {
     public string Game { get; set; } = "";
@@ -80,6 +85,17 @@ public sealed class FidelitySnapshot
     public string Headline { get; set; } = "";
     public List<string> Problems { get; set; } = [];
     public List<FidelityDimensionReport> Dimensions { get; set; } = [];
+    public List<FidelityStepReport> Steps { get; set; } = [];
+    public double ElapsedSeconds { get; set; }
+}
+
+public sealed class FidelityStepReport
+{
+    public string Key { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string State { get; set; } = FidelityStepStates.Waiting;
+    public double Progress { get; set; }
+    public string Detail { get; set; } = "";
     public double ElapsedSeconds { get; set; }
 }
 

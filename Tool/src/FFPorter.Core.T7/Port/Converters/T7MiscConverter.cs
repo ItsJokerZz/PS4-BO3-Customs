@@ -64,12 +64,12 @@ public sealed class T7MiscConverter : IT7AssetConverter, IT7NestedConverter
 
     private static void Script(T7PortContext context, T7AssetRewrite rewrite)
     {
-        if (rewrite.Reads.Count != 3)
-            throw new InvalidDataException($"{rewrite.Label}: a script parse tree has 3 reads, this one {rewrite.Reads.Count}");
+        if (rewrite.Reads.Count < 2)
+            throw new InvalidDataException($"{rewrite.Label}: a script parse tree needs a header read and a buffer read, this one has {rewrite.Reads.Count}");
         T7Gsc gsc = context.Gsc ?? throw new InvalidDataException("the GSC opcode map (app/data/t7_gsc/gsc_opcodes.json) is missing");
         T7Walk.Span header = rewrite.Take(24);
         T7StructBuilder headerBuilder = rewrite.Rebuild(header, 24).MoveAll();
-        rewrite.Copy();
+        rewrite.Copy(rewrite.Reads.Count - 2);
         T7Walk.Span bufferRead = rewrite.Take();
         uint length = BinaryPrimitives.ReadUInt32LittleEndian(rewrite.Pc.Zone.AsSpan((int)header.FileOffset + 8));
         if (bufferRead.Size != length + 1L)
@@ -77,7 +77,7 @@ public sealed class T7MiscConverter : IT7AssetConverter, IT7NestedConverter
         byte[] converted = gsc.Convert(rewrite.Bytes(bufferRead)[..(int)length]);
         if (context.GscBuiltins != null)
         {
-            IReadOnlyList<string> changes = context.GscBuiltins.Apply(converted, rewrite.Asset.Name ?? "script");
+            IReadOnlyList<string> changes = context.GscBuiltins.Apply(converted, rewrite.Asset.Name ?? "script", context.ScriptExports);
             foreach (string change in changes)
                 context.Log($"script '{rewrite.Asset.Name}': {change}");
             if (changes.Count > 0)

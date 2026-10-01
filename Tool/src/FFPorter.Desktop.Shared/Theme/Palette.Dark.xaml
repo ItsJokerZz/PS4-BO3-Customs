@@ -47,4 +47,9 @@
   <SolidColorBrush x:Key="Status.Error.Soft" Color="#1AF87171"/>
   <SolidColorBrush x:Key="Status.Warning" Color="#FBBF24"/>
   <SolidColorBrush x:Key="Status.Running" Color="#ECECEE"/>
+
+  <SolidColorBrush x:Key="Danger" Color="#F87171"/>
+  <SolidColorBrush x:Key="Danger.Hover" Color="#FCA5A5"/>
+  <SolidColorBrush x:Key="Danger.Pressed" Color="#EF4444"/>
+  <SolidColorBrush x:Key="Danger.Text" Color="#0F1012"/>
 </ResourceDictionary>

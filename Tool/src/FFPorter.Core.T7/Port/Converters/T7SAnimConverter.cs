@@ -9,7 +9,7 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
 {
     public const int HeaderSize = 112, PcTextureSize = 136, Ps4TextureSize = 208, TrailerSize = 12, PcLayoutAt = 0x58, Ps4LayoutAt = 0xA0;
 
-    private const int PcFormat = 10, Ps4Format = 29, KeyTag = 7;
+    private const int PcFormat = 10, KeyTag = 7;
     private const int KeyAt = 8, SizeAt = 0x34, InlineAt = 0x38, KeptPrefix = 0x40, FormatAt = PcLayoutAt + 36;
 
     public string Name => "sanim";
@@ -43,10 +43,12 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
             return;
         List<(uint LogicalOffset, byte[] Bytes)> Relayout(XPakIndexRecord? record, List<(uint LogicalOffset, byte[] Bytes)> parts)
         {
-            byte[] payload = parts.Count == 1 ? parts[0].Bytes : [.. parts.SelectMany(p => p.Bytes)];
-            return payload.Length == pcSize ? [(parts[0].LogicalOffset, Texels(payload, layout))] : parts;
+            byte[] payload = Formats.T7WrappedItems.Flatten(parts);
+            if (payload.Length < pcSize || payload.AsSpan((int)pcSize).ContainsAnyExcept((byte)0))
+                return parts;
+            return [(parts[0].LogicalOffset, Texels(payload.AsSpan(0, (int)pcSize), layout))];
         }
-        string signature = $"sanim-1:{layout}";
+        string signature = $"sanim-2:{layout}";
         plan.Register(key, Relayout, signature);
         plan.RegisterNamed("sanim", asset.Name, pcSize, Relayout, signature);
     }
@@ -72,7 +74,7 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
         uint ps4Size;
         if (TryLayout(pcTexture[PcLayoutAt..], out Layout layout, out string? layoutReason))
         {
-            fields = [layout.BaseRow, layout.FrameRow, layout.FrameRow, 0, layout.BaseRow, layout.SecondBlock, layout.Width, layout.Frames, layout.Size, Ps4Format, Ps4Format, 0];
+            fields = Fields(layout);
             ps4Size = layout.Size;
             if (dataRead >= 0)
             {
@@ -90,7 +92,7 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
             for (int i = 0; i < fields.Length; i++)
                 fields[i] = BinaryPrimitives.ReadUInt32LittleEndian(pcTexture[(PcLayoutAt + i * 4)..]);
             for (int i = 9; i <= 10; i++)
-                fields[i] = fields[i] == PcFormat ? Ps4Format : fields[i];
+                fields[i] = Formats.T7Gnm.TryPs4Format(fields[i], out int ps4Format) ? (uint)ps4Format : fields[i];
             ps4Key = pcKey;
             ps4Size = pcSize;
             rewrite.Context.Warn(T7Issues.SAnimLayoutKept, $"{rewrite.Label}: {layoutReason}; the PC texels were kept", rewrite.Asset.Name);
@@ -148,13 +150,17 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
         pcTexture[..KeptPrefix].CopyTo(ps4Texture);
         BinaryPrimitives.WriteUInt64LittleEndian(ps4Texture.AsSpan(KeyAt), XPak.ComputeKey(ps4Data, KeyTag));
         BinaryPrimitives.WriteUInt32LittleEndian(ps4Texture.AsSpan(SizeAt), (uint)ps4Data.Length);
-        uint[] fields = [layout.BaseRow, layout.FrameRow, layout.FrameRow, 0, layout.BaseRow, layout.SecondBlock, layout.Width, layout.Frames, layout.Size, Ps4Format, Ps4Format, 0];
+        uint[] fields = Fields(layout);
         for (int i = 0; i < fields.Length; i++)
             BinaryPrimitives.WriteUInt32LittleEndian(ps4Texture.AsSpan(Ps4LayoutAt + i * 4), fields[i]);
         return true;
     }
 
-    private readonly record struct Layout(uint Width, uint Frames, uint BaseRow, uint FrameRow, uint SecondBlock, uint Size, uint PcBase, uint PcSecondBlock);
+    private readonly record struct Layout(uint Width, uint Frames, uint BaseRow, uint FrameRow, uint SecondRow, uint SecondBlock, uint Size,
+        uint PcBase, uint PcFrameRow, uint PcSecondRow, uint PcSecondBlock, uint Format, uint SecondFormat);
+
+    private static uint[] Fields(Layout layout) =>
+        [layout.BaseRow, layout.FrameRow, layout.SecondRow, 0, layout.BaseRow, layout.SecondBlock, layout.Width, layout.Frames, layout.Size, layout.Format, layout.SecondFormat, 0];
 
     private static bool TryLayout(ReadOnlySpan<byte> pc, out Layout layout, out string? reason)
     {
@@ -163,24 +169,26 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
         var f = new uint[12];
         for (int i = 0; i < f.Length; i++)
             f[i] = BinaryPrimitives.ReadUInt32LittleEndian(pc[(i * 4)..]);
-        uint baseRow = f[0], frameRow = f[1], frameRow2 = f[2], zero = f[3], pcBase = f[4], second = f[5], width = f[6], frames = f[7], size = f[8], format = f[9], format2 = f[10];
+        uint baseRow = f[0], frameRow = f[1], secondRow = f[2], zero = f[3], pcBase = f[4], second = f[5], width = f[6], frames = f[7], size = f[8], format = f[9], format2 = f[10];
         static uint Align(uint value, uint to) => (value + to - 1) / to * to;
-        if (baseRow != width * 16 || frameRow != width * 8 || frameRow2 != frameRow || zero != 0 || pcBase != Align(baseRow, 256)
-            || second != Align(pcBase + frames * frameRow, 256) || size != second + Align(frames * frameRow, 256) || width == 0 || frames == 0)
+        uint texel = BlockTexel(format), texel2 = BlockTexel(format2);
+        if (texel == 0 || texel2 == 0 || !Formats.T7Gnm.TryPs4Format(format, out int ps4Format) || !Formats.T7Gnm.TryPs4Format(format2, out int ps4Format2))
         {
-            reason = $"texture layout {width}x{frames} (row {baseRow}/{frameRow}, blocks at {pcBase} and {second}, {size} bytes) does not follow the PC padding rules";
+            reason = $"texture format {format}/{format2} (only 8- and 16-byte uncompressed formats are known)";
             return false;
         }
-        if (format != PcFormat || format2 != PcFormat)
+        if (baseRow != width * 16 || frameRow != width * texel || secondRow != width * texel2 || zero != 0 || pcBase != Align(baseRow, 256)
+            || second != Align(pcBase + frames * frameRow, 256) || size != second + Align(frames * secondRow, 256) || width == 0 || frames == 0)
         {
-            reason = $"texture format {format}/{format2} (only {PcFormat} is known)";
+            reason = $"texture layout {width}x{frames} (rows {baseRow}/{frameRow}/{secondRow}, blocks at {pcBase} and {second}, {size} bytes) does not follow the PC padding rules";
             return false;
         }
         uint ps4Base = Align(width, 64) * 16;
-        uint rowTexels = 64 / Gcd(frames, 64);
-        uint ps4Frame = Align(width, rowTexels) * 8;
+        uint pitch = Align(width, 64 / Gcd(frames, 64));
+        uint ps4Frame = pitch * texel, ps4SecondRow = pitch * texel2;
         uint ps4Second = ps4Base + frames * ps4Frame;
-        layout = new Layout(width, frames, ps4Base, ps4Frame, ps4Second, ps4Second + frames * ps4Frame, pcBase, second);
+        layout = new Layout(width, frames, ps4Base, ps4Frame, ps4SecondRow, ps4Second, ps4Second + frames * ps4SecondRow,
+            pcBase, frameRow, secondRow, second, (uint)ps4Format, (uint)ps4Format2);
         return true;
 
         static uint Gcd(uint a, uint b)
@@ -189,17 +197,19 @@ public sealed class T7SAnimConverter : IT7AssetConverter, IT7NestedConverter, IT
                 (a, b) = (b, a % b);
             return a;
         }
+
+        static uint BlockTexel(uint format) => Formats.T7Gnm.TexelBytes(format) is int bytes and (8 or 16) ? (uint)bytes : 0;
     }
 
     private static byte[] Texels(ReadOnlySpan<byte> pc, Layout layout)
     {
         var ps4 = new byte[layout.Size];
-        int pcRow = (int)layout.Width * 8;
-        pc[..(pcRow * 2)].CopyTo(ps4);
+        pc[..((int)layout.Width * 16)].CopyTo(ps4);
+        int pcRow = (int)layout.PcFrameRow, pcSecondRow = (int)layout.PcSecondRow;
         for (int k = 0; k < layout.Frames; k++)
         {
             pc.Slice((int)layout.PcBase + k * pcRow, pcRow).CopyTo(ps4.AsSpan((int)layout.BaseRow + k * (int)layout.FrameRow));
-            pc.Slice((int)layout.PcSecondBlock + k * pcRow, pcRow).CopyTo(ps4.AsSpan((int)layout.SecondBlock + k * (int)layout.FrameRow));
+            pc.Slice((int)layout.PcSecondBlock + k * pcSecondRow, pcSecondRow).CopyTo(ps4.AsSpan((int)layout.SecondBlock + k * (int)layout.SecondRow));
         }
         return ps4;
     }

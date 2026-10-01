@@ -68,6 +68,10 @@ public static class T7Issues
         (n, _) => $"{N(n, "sound", "sounds")} resampled to 48 kHz");
     public static readonly T7Issue LoopRetimed = new("sound.loop", D.Sound, Strong,
         (n, _) => $"{N(n, "loop", "loops")} stretched to whole MP3 frames so {Use(n, "it repeats", "they repeat")} seamlessly");
+    public static readonly T7Issue SoundSilent = new("sound.silent", D.Sound, Strong,
+        (n, _) => $"{N(n, "sound", "sounds")} with no audio in the PC bank {Use(n, "plays", "play")} as silence");
+    public static readonly T7Issue SoundStreamed = new("sound.streamed", D.Sound, Strong,
+        (n, s) => $"{N(n, "loaded sound", "loaded sounds")} now {Use(n, "streams", "stream")} from the map's stream bank, because the map loads more sound than the PS4 keeps in memory{Example(s)}");
     public static readonly T7Issue AliasNamesByRule = new("sound.external-names", D.Sound, Good,
         (n, _) => $"{N(n, "alias plays", "aliases play")} files from the base game's banks, renamed by the PS4 naming rule");
     public static readonly T7Issue AliasIdMismatch = new("sound.id-mismatch", D.Sound, Approximate,
@@ -119,6 +123,9 @@ public static class T7Issues
     internal static T7Issue StreamUndescribed(FidelityDimension dimension, string singular, string plural) => Make($"stream.undescribed.{plural}", dimension, Good,
         (n, _) => $"{N(n, singular, plural)} stored in the map's xpaks {Use(n, "is", "are")} described by no asset it loads; {Use(n, "it was", "they were")} copied unchanged");
 
+    internal static T7Issue StreamUnused(FidelityDimension dimension, string singular, string plural) => Make($"stream.unused.{plural}", dimension, null,
+        (n, _) => $"{N(n, singular, plural)} stored in the map's xpaks {Use(n, "is", "are")} referenced nowhere in its zone, so the game never loads {Use(n, "it", "them")}; {Use(n, "it was", "they were")} copied as {Use(n, "it is", "they are")}");
+
     internal static T7Issue StreamUnchanged(FidelityDimension dimension, string singular, string plural) => Make($"stream.unchanged.{plural}", dimension, Approximate,
         (n, _) => $"{N(n, singular, plural)} {Were(n)} copied unchanged; there is no PC to PS4 rule for {Use(n, "it", "them")} yet");
 
@@ -128,16 +135,36 @@ public static class T7Issues
     internal static T7Issue StreamKeyNotHash(FidelityDimension dimension) => Make("stream.key-not-hash", dimension, Approximate,
         (n, _) => $"{N(n, "streamed item has a key", "streamed items have keys")} that {Use(n, "is not a payload hash", "are not payload hashes")}; the PC {Use(n, "key is", "keys are")} kept");
 
+    internal static T7Issue StreamKeyVerified(FidelityDimension dimension) => Make("stream.key-verified", dimension, Exact,
+        (n, _) => $"{N(n, "streamed item hashes", "streamed items hash")} to the PS4 {Use(n, "key", "keys")} the map already carries, so {Use(n, "it is", "they are")} byte-identical to the original PS4 data");
+
     internal static T7Issue StreamBundled(FidelityDimension dimension, string singular, string plural) => Make($"stream.bundled.{plural}", dimension, null,
         (n, _) => $"{N(n, singular, plural)} the map borrows from the base game {Were(n)} converted into its xpaks");
 }
 
 public sealed class T7Fidelity
 {
-    private readonly List<(string Key, double Weight)> _phases = [];
-    private readonly Dictionary<string, int> _phaseIndex = new(StringComparer.OrdinalIgnoreCase);
-    private double[] _before = [0];
-    private int _phase = -1;
+    private sealed class Row(string key)
+    {
+        public string Key { get; } = key;
+        public double Weight { get; set; }
+        public double Finished { get; set; }
+    }
+
+    private sealed class Phase(string key, double weight, Row row)
+    {
+        public string Key { get; } = key;
+        public double Weight { get; set; } = weight;
+        public Row Row { get; } = row;
+        public bool Finished { get; set; }
+    }
+
+    public const string PrepareStep = "prepare";
+
+    private readonly Dictionary<string, Phase> _phases = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Row> _rows = new(StringComparer.Ordinal);
+    private Phase? _phase;
+    private double _total, _finished;
     private T7Walk.Asset? _asset;
     private readonly Dictionary<string, (T7Issue Issue, string? Sample, long Count)> _assetIssues = new(StringComparer.Ordinal);
     private readonly Dictionary<(FidelityDimension Dimension, FidelityGrade Grade), long> _pendingStreamGrades = [];
@@ -148,47 +175,48 @@ public sealed class T7Fidelity
 
     public int ZonesNotWritten { get; private set; }
 
-    public void ZoneNotWritten() => ZonesNotWritten++;
-
-
-    public void Plan(IEnumerable<string> soundBanks, IEnumerable<(string Zone, string? XPak)> zones, IEnumerable<string> movies)
+    public void ZoneNotWritten()
     {
-        static double Megabytes(string? path) => path != null && File.Exists(path) ? new FileInfo(path).Length / 1048576.0 : 0;
-        _phases.Clear();
-        _phaseIndex.Clear();
-        void Add(string key, double weight)
+        ZonesNotWritten++;
+        Fail();
+    }
+
+    public void AddStep(string key, string title, IEnumerable<(string Phase, double Weight)> phases)
+    {
+        if (!_rows.TryGetValue(key, out Row? row))
+            _rows[key] = row = new Row(key);
+        foreach ((string name, double weight) in phases)
         {
-            _phaseIndex[key] = _phases.Count;
-            _phases.Add((key, weight));
+            if (_phases.ContainsKey(name))
+                continue;
+            double kept = Math.Max(0, weight);
+            _phases[name] = new Phase(name, kept, row);
+            row.Weight += kept;
+            _total += kept;
         }
-        foreach (string bank in soundBanks)
-            Add("bank:" + Path.GetFileName(bank) + ":" + Path.GetFileName(Path.GetDirectoryName(bank)), 1 + Megabytes(bank) * 0.3);
-        foreach ((string zone, string? xpak) in zones)
-        {
-            string name = Path.GetFileName(zone);
-            double ff = Megabytes(zone);
-            Add($"zone:{name}:walk", 1 + ff * 0.03);
-            Add($"zone:{name}:streams", xpak != null ? 1 + Megabytes(xpak) * 0.05 : 0);
-            Add($"zone:{name}:assets", 1 + ff * 0.25);
-            Add($"zone:{name}:link", 1 + ff * 0.2);
-        }
-        foreach (string movie in movies)
-            Add("movie:" + Path.GetFileName(movie), 10 + Megabytes(movie));
-        _before = new double[_phases.Count + 1];
-        for (int i = 0; i < _phases.Count; i++)
-            _before[i + 1] = _before[i] + _phases[i].Weight;
+        Tracker.AddStep(key, title);
+    }
+
+    public void Prepare()
+    {
+        AddStep(PrepareStep, "Load reference data", [(PrepareStep, 0)]);
+        Enter(PrepareStep, "Loading reference zones", "PS4 and PC reference data");
     }
 
     public static string BankPhase(string bank) => "bank:" + Path.GetFileName(bank) + ":" + Path.GetFileName(Path.GetDirectoryName(bank));
 
     public static string ZonePhase(string zone, string step) => $"zone:{Path.GetFileName(zone)}:{step}";
 
+    public static string MoviePhase(string movie) => "movie:" + Path.GetFileName(movie);
+
     public void Enter(string phase, string stage, string detail = "")
     {
-        if (_phaseIndex.TryGetValue(phase, out int index))
+        if (_phases.TryGetValue(phase, out Phase? next) && next != _phase)
         {
-            _phase = index;
-            Tracker.Progress(Fraction(0));
+            Finish(_phase);
+            _phase = next;
+            Tracker.StartStep(next.Row.Key, detail);
+            Report(0, detail);
         }
         Tracker.Stage(stage, detail);
     }
@@ -197,15 +225,62 @@ public sealed class T7Fidelity
     {
         if (detail != null)
             Tracker.Detail(detail);
-        Tracker.Progress(Fraction(Math.Clamp(fraction, 0, 1)));
+        Report(Math.Clamp(fraction, 0, 1), detail);
     }
 
-    private double Fraction(double withinPhase)
+    public void PlaceNext(string step) => Tracker.PlaceNext(step);
+
+    public void Reweigh(string phase, double weight)
     {
-        double total = _before[^1];
-        if (_phase < 0 || total <= 0)
-            return 0;
-        return (_before[_phase] + _phases[_phase].Weight * withinPhase) / total;
+        if (!_phases.TryGetValue(phase, out Phase? found) || found.Finished || found == _phase)
+            return;
+        double kept = Math.Max(0, weight);
+        found.Row.Weight += kept - found.Weight;
+        _total += kept - found.Weight;
+        found.Weight = kept;
+    }
+
+    public void Fail()
+    {
+        if (_phase != null)
+            Tracker.FailStep(_phase.Row.Key);
+    }
+
+    public void Skip(string step)
+    {
+        foreach (Phase phase in _phases.Values.Where(p => p.Row.Key == step))
+            Finish(phase);
+        Tracker.SkipStep(step);
+        Report(0, null);
+    }
+
+    public void EndZone(string zone)
+    {
+        string prefix = ZonePhase(zone, "");
+        foreach (Phase phase in _phases.Values.Where(p => p.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+            Finish(phase);
+        Report(0, null);
+    }
+
+    private void Finish(Phase? phase)
+    {
+        if (phase is not { Finished: false })
+            return;
+        phase.Finished = true;
+        phase.Row.Finished += phase.Weight;
+        _finished += phase.Weight;
+    }
+
+    private void Report(double fraction, string? detail)
+    {
+        double current = _phase is { Finished: false } open ? open.Weight * fraction : 0;
+        if (_phase != null)
+        {
+            Row row = _phase.Row;
+            Tracker.StepProgress(row.Key, row.Weight > 0 ? Math.Min(1, (row.Finished + current) / row.Weight) : fraction, detail);
+        }
+        if (_total > 0)
+            Tracker.Progress(Math.Min(1, (_finished + current) / _total));
     }
 
 
@@ -433,6 +508,11 @@ public sealed class T7Fidelity
             Tracker.Downgrade(dimension, Approximate, group.Count());
             Tracker.Note(dimension, issue.Key, issue.Grade, group.Count(), issue.Text);
         }
+        foreach ((string type, int count) in result.KeyMatches)
+        {
+            T7Issue issue = T7Issues.StreamKeyVerified(StreamItem(type).Dimension);
+            Tracker.Note(issue.Dimension, issue.Key, issue.Grade, count, issue.Text);
+        }
         foreach (((FidelityDimension dimension, FidelityGrade grade), long count) in _pendingStreamGrades)
             Tracker.Downgrade(dimension, grade, count);
         _pendingStreamGrades.Clear();
@@ -466,6 +546,12 @@ public sealed class T7Fidelity
                 Tracker.Note(dimension, issue.Key, issue.Grade, count, issue.Text);
                 break;
             }
+            case "unchanged (not used by the zone)":
+            {
+                T7Issue issue = T7Issues.StreamUnused(dimension, singular, plural);
+                Tracker.Note(dimension, issue.Key, issue.Grade, count, issue.Text);
+                break;
+            }
             case "unchanged (no converter)":
             {
                 Tracker.Add(dimension, Approximate, count);
@@ -493,7 +579,7 @@ public sealed class T7Fidelity
     }
 
 
-    public void SoundBank(int entries, int reencoded, int resampled, int retimed)
+    public void SoundBank(int entries, int reencoded, int resampled, int retimed, int silenced = 0)
     {
         Tracker.Add(D.Sound, Exact, entries - reencoded);
         Tracker.Add(D.Sound, Strong, reencoded);
@@ -501,6 +587,12 @@ public sealed class T7Fidelity
         Tracker.Note(D.Sound, T7Issues.SoundReencoded.Key, T7Issues.SoundReencoded.Grade, reencoded, T7Issues.SoundReencoded.Text);
         Tracker.Note(D.Sound, T7Issues.SoundResampled.Key, T7Issues.SoundResampled.Grade, resampled, T7Issues.SoundResampled.Text);
         Tracker.Note(D.Sound, T7Issues.LoopRetimed.Key, T7Issues.LoopRetimed.Grade, retimed, T7Issues.LoopRetimed.Text);
+        Tracker.Note(D.Sound, T7Issues.SoundSilent.Key, T7Issues.SoundSilent.Grade, silenced, T7Issues.SoundSilent.Text);
+    }
+
+    public void SoundStreamed(int count, string sample)
+    {
+        Tracker.Note(D.Sound, T7Issues.SoundStreamed.Key, T7Issues.SoundStreamed.Grade, count, T7Issues.SoundStreamed.Text, sample);
     }
 
     public void SoundBankFailed(string bank, int? entries, string reason)

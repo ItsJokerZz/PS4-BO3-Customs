@@ -31,6 +31,10 @@ public sealed class T7ZonePortOptions
 
     public IReadOnlyDictionary<string, string>? SoundRenames { get; init; }
 
+    public IReadOnlySet<uint>? StreamedSounds { get; init; }
+
+    public ISet<uint>? SwitchedSounds { get; init; }
+
     public T7PcShaderLibrary? ShaderLibrary { get; init; }
 
     public Streams.T7StreamMap? SharedStreams { get; init; }
@@ -54,282 +58,415 @@ public static class T7ZonePort
 
     public static T7ZonePortResult Run(T7ZonePortOptions options)
     {
-        Action<string> log = options.Log;
-        T7Fidelity? fidelity = options.Fidelity;
-        Directory.CreateDirectory(options.WorkDirectory);
-        string stem = Path.GetFileNameWithoutExtension(options.PcFastFile);
-        string zoneFile = Path.GetFileName(options.PcFastFile);
-        string pcWalk = Path.Combine(options.WorkDirectory, stem + ".pc.t7walk");
-        string pcFastFile = options.PcFastFile;
-        fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "walk"), "Reading the PC zone", $"{zoneFile} with the PC game's loader");
-        if (options.ApplyDelta)
-        {
-            try
-            {
-                pcFastFile = T7FastFileDelta.Resolve(options.PcFastFile, options.WorkDirectory, message => log($"[{stem}] {message}"));
-            }
-            catch (InvalidDataException error)
-            {
-                string problem = $"cannot apply {Path.ChangeExtension(Path.GetFileName(options.PcFastFile), ".fd")}: {error.Message}";
-                fidelity?.Tracker.Problem($"{stem}: {problem}");
-                fidelity?.ZoneNotWritten();
-                return new T7ZonePortResult(false, options.OutputFastFile, [problem], new Dictionary<string, int>());
-            }
-        }
-        log($"[{stem}] reading the PC zone with the PC loader");
-        NativeProcessResult walked = NativeProcess.Run(T7PcLoader.TaskName, T7PcLoader.ChildArguments(options.PcImage, pcWalk, pcFastFile),
-            new NativeProcessOptions { OnErrorLine = log });
-        if (walked.ExitCode != 0)
-        {
-            string problem = $"PC loader walk failed ({walked.ExitCode}): {walked.Stderr.Trim()}";
-            fidelity?.Tracker.Problem($"{stem}: {problem}");
-            fidelity?.ZoneNotWritten();
-            return new T7ZonePortResult(false, options.OutputFastFile, [problem], new Dictionary<string, int>());
-        }
-        log($"[{stem}] {walked.Stdout.Trim()}");
-        fidelity?.Step(1);
+        var job = new Job(options);
+        job.Read();
+        job.Shaders();
+        job.Streams();
+        job.Assets();
+        job.Link();
+        return job.Result!;
+    }
 
-        T7FastFile.Decoded decoded = T7FastFile.Load(pcFastFile);
-        var pc = new T7WalkIndex("pc", decoded.Zone, T7Walk.Read(pcWalk));
-        options.Donors.PreferredZone = stem;
-        var builder = new T7ZoneBuilder { OutputName = T7Names.ToPs4 };
-        builder.MapScriptStrings(pc, pc.List.ScriptStrings.Select(builder.AddScriptString).ToArray());
+    public sealed class Job(T7ZonePortOptions options)
+    {
+        private readonly Action<string> _log = options.Log;
+        private readonly T7Fidelity? _fidelity = options.Fidelity;
+        private readonly string _stem = Path.GetFileNameWithoutExtension(options.PcFastFile), _zoneFile = Path.GetFileName(options.PcFastFile);
+        private readonly Dictionary<string, int> _strategies = [];
+        private T7FastFile.Decoded? _decoded;
+        private T7PortContext? _context;
+        private List<IT7AssetConverter> _converters = [];
+        private int[] _outputIndex = [];
+        private T7OutputAsset?[] _outputs = [];
+        private bool _streamed, _assembled;
+        private List<T7TechsetBuilder.ShaderJob>? _shaderJobs;
+        private double? _shaderCost;
 
-        int count = pc.Walk.Assets.Count;
-        var outputIndex = Enumerable.Range(0, count).ToArray();
-        var context = new T7PortContext
-        {
-            Pc = pc,
-            Builder = builder,
-            Donors = options.Donors,
-            Log = log,
-            OutputIndexOfPc = outputIndex,
-            SoundRenames = options.SoundRenames ?? new Dictionary<string, string>(),
-        };
-        var converters = new List<IT7AssetConverter>(Converters);
-        var donor = new T7DonorConverter(options.DonorFallbackForAllTypes
-            ? Enumerable.Range(0, T7AssetTypes.Count)
-            : [T7AssetTypes.TechniqueSet, T7AssetTypes.ComputeShaderSet]);
-        converters.Add(donor);
-        context.Converters = converters;
-        context.Fidelity = fidelity;
-        context.ShaderLibrary = options.ShaderLibrary;
-        context.ShaderLibrary?.AddZone(pc);
-        context.ShaderCompiler = options.ShaderCompiler;
-        string opcodeMap = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(options.Ps4LoaderDirectory))!, "t7_gsc", "gsc_opcodes.json");
-        if (File.Exists(opcodeMap))
-            context.Gsc = Scripts.T7Gsc.Load(opcodeMap);
-        string builtins = Path.Combine(Path.GetDirectoryName(opcodeMap)!, "ps4_builtins.json");
-        if (File.Exists(builtins))
-            context.GscBuiltins = Scripts.T7GscBuiltins.Load(builtins);
-        else
-            context.Warn(T7Issues.BuiltinsUnchecked, $"{builtins} is missing: scripts calling PC-only builtins are not caught");
-        context.Acts = options.Acts != null && File.Exists(options.Acts) ? options.Acts : null;
-        context.GscRecompile = options.GscRecompile;
-        context.Fallouts.AddRange(T7TextureComboFallout.Compute(pc));
-        foreach (T7TextureComboFallout fallout in context.Fallouts)
-        {
-            builder.NullFields.UnionWith(fallout.NullFields.Select(f => (pc, f)));
-            log($"[{stem}] texturecombo '{fallout.Asset.Name}': {fallout.SubAssets.Count} sub-assets; " + string.Join(", ", fallout.Counts.OrderBy(p => p.Key).Select(p => $"{p.Key} x{p.Value}")));
-        }
-        ConvertStreams(options, context, converters, stem);
-        if (options.SharedStreams != null)
-        {
-            context.Streams.Merge(options.SharedStreams);
-            options.SharedStreams.Merge(context.Streams);
-        }
+        public T7ZonePortResult? Result { get; private set; }
 
-        T7TechsetBuilder.Precompile(context, message => log($"[{stem}] {message}"));
+        public bool Ended => Result != null;
 
-        var outputs = new T7OutputAsset?[count];
-        var failures = new List<(int Index, string Why)>();
-        var strategies = new Dictionary<string, int>();
-        fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "assets"), "Converting assets", $"{zoneFile} · {T7Fidelity.Of(0, count)}");
-        for (int i = 0; i < count; i++)
+        public void Read()
         {
-            T7Walk.Asset asset = pc.Walk.Assets[i];
-            fidelity?.Step((double)i / count, $"{zoneFile} · {T7Fidelity.Of(i, count)}");
-            if (context.Fallouts.Exists(f => f.DroppedEntries.Contains(i)))
+            if (Ended || _context != null)
+                return;
+            Directory.CreateDirectory(options.WorkDirectory);
+            string pcFastFile = options.PcFastFile;
+            _fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "walk"), "Reading the PC zone", $"{_zoneFile} with the PC game's loader");
+            if (options.ApplyDelta)
             {
-                strategies["dropped (texturecombo)"] = strategies.GetValueOrDefault("dropped (texturecombo)") + 1;
-                fidelity?.LeftOut(T7Issues.TextureComboLeftOut);
-                continue;
-            }
-            if (asset.Type == T7AssetTypes.Material && asset.Name?.EndsWith("|dup", StringComparison.Ordinal) == true)
-            {
-                strategies["dropped (|dup material)"] = strategies.GetValueOrDefault("dropped (|dup material)") + 1;
-                fidelity?.LeftOut(T7Issues.DupMaterialsLeftOut);
-                continue;
-            }
-            var output = new T7OutputAsset { Type = asset.Type, Name = asset.Name };
-            SetHeader(pc, i, output);
-            if (asset.Reads.Count == 0 && asset.Deferred.Count == 0)
-            {
-                long cell = pc.List.AssetTableOffset + 16L * i + 8;
-                if (pc.TryReferencedName(cell, out int referencedType, out string referencedName) && referencedType == T7AssetTypes.Material
-                    && referencedName.EndsWith("|dup", StringComparison.Ordinal))
-                {
-                    strategies["dropped (|dup material)"] = strategies.GetValueOrDefault("dropped (|dup material)") + 1;
-                    fidelity?.LeftOut(T7Issues.DupMaterialsLeftOut);
-                    continue;
-                }
-                fidelity?.BeginAsset(asset);
-                if (TryRehome(context, cell, output, out string? rehomeProblem))
-                {
-                    strategies["re-homed from texturecombo"] = strategies.GetValueOrDefault("re-homed from texturecombo") + 1;
-                    outputs[i] = output;
-                    fidelity?.EndAsset(asset, "re-homed", null);
-                    continue;
-                }
-                if (rehomeProblem != null)
-                {
-                    failures.Add((i, rehomeProblem));
-                    fidelity?.EndAsset(asset, null, rehomeProblem);
-                    continue;
-                }
-                fidelity?.AbandonAsset();
-                output.Origin = "reference";
-                outputs[i] = output;
-                strategies["reference"] = strategies.GetValueOrDefault("reference") + 1;
-                continue;
-            }
-            var reasons = new List<string>();
-            bool done = false;
-            fidelity?.BeginAsset(asset);
-            foreach (IT7AssetConverter converter in converters)
-            {
-                bool converted;
-                string? why;
                 try
                 {
-                    converted = converter.TryConvert(context, asset, output, out why);
+                    pcFastFile = T7FastFileDelta.Resolve(options.PcFastFile, options.WorkDirectory, message => _log($"[{_stem}] {message}"));
                 }
-                catch (Exception error) when (error is not (OutOfMemoryException or StackOverflowException))
+                catch (InvalidDataException error)
                 {
-                    converted = false;
-                    why = $"{error.GetType().Name}: {error.Message}";
+                    Stop($"cannot apply {Path.ChangeExtension(Path.GetFileName(options.PcFastFile), ".fd")}: {error.Message}");
+                    return;
                 }
-                if (converted)
-                {
-                    if (string.IsNullOrEmpty(output.Origin))
-                        output.Origin = converter.Name;
-                    string key = $"{T7AssetTypes.Name(asset.Type)}:{converter.Name}";
-                    strategies[key] = strategies.GetValueOrDefault(key) + 1;
-                    done = true;
-                    fidelity?.EndAsset(asset, converter.Name, null);
-                    break;
-                }
-                output.Main.Clear();
-                output.Deferred.Clear();
-                fidelity?.DiscardAssetIssues();
-                foreach (string key in context.StringPools.Where(p => p.Value == i).Select(p => p.Key).ToList())
-                    context.StringPools.Remove(key);
-                if (why != null && converter is not T7CopyConverter)
-                    reasons.Add($"{converter.Name}: {why}");
             }
-            if (done)
+            string pcWalk = Path.Combine(options.WorkDirectory, $"{_stem}.{T7FastFileDelta.CacheKey(pcFastFile)}.pc.t7walk");
+            T7Walk? pcWalked = ReadReusedWalk(pcWalk);
+            if (pcWalked != null)
             {
-                outputs[i] = output;
+                _log($"[{_stem}] reusing the PC zone read from the last conversion");
             }
             else
             {
-                string why = reasons.Count > 0 ? string.Join("; ", reasons) : $"no PC->PS4 converter for {T7AssetTypes.Name(asset.Type)} assets yet";
-                failures.Add((i, why));
-                fidelity?.EndAsset(asset, null, why);
+                _log($"[{_stem}] reading the PC zone with the PC loader");
+                foreach (string stale in Directory.EnumerateFiles(options.WorkDirectory, _stem + ".*pc.t7walk*"))
+                    File.Delete(stale);
+                string partial = pcWalk + ".partial";
+                NativeProcessResult walked = NativeProcess.Run(T7PcLoader.TaskName, T7PcLoader.ChildArguments(options.PcImage, partial, pcFastFile),
+                    new NativeProcessOptions { OnErrorLine = _log });
+                if (walked.ExitCode != 0)
+                {
+                    Stop($"PC loader walk failed ({walked.ExitCode}): {walked.Stderr.Trim()}");
+                    return;
+                }
+                File.Move(partial, pcWalk, overwrite: true);
+                if (File.Exists(partial + ".log.jsonl"))
+                    File.Move(partial + ".log.jsonl", pcWalk + ".log.jsonl", overwrite: true);
+                _log($"[{_stem}] {walked.Stdout.Trim()}");
+                pcWalked = T7Walk.Read(pcWalk);
             }
-        }
-        fidelity?.Step(1, $"{zoneFile} · {T7Fidelity.Of(count, count)}");
 
-        var problems = new List<string>();
-        if (failures.Count > 0)
-        {
-            HashSet<int> referenced = ReferencedAssets(pc);
-            foreach ((int index, string why) in failures)
+            T7FastFile.Decoded decoded = T7FastFile.Load(pcFastFile);
+            var pc = new T7WalkIndex("pc", decoded.Zone, pcWalked);
+            options.Donors.PreferredZone = _stem;
+            var builder = new T7ZoneBuilder { OutputName = T7Names.ToPs4 };
+            builder.MapScriptStrings(pc, pc.List.ScriptStrings.Select(builder.AddScriptString).ToArray());
+
+            int count = pc.Walk.Assets.Count;
+            int[] outputIndex = Enumerable.Range(0, count).ToArray();
+            var context = new T7PortContext
             {
-                T7Walk.Asset asset = pc.Walk.Assets[index];
-                string label = $"{T7AssetTypes.Name(asset.Type)} '{asset.Name}' (PC asset {index})";
-                if (options.DropUnreferenced && !referenced.Contains(index))
-                    context.Warnings.Add($"dropped unreferenced {label}: {why}");
-                else
-                    problems.Add($"cannot convert {label}: {why}");
+                Pc = pc,
+                Builder = builder,
+                Donors = options.Donors,
+                Log = _log,
+                OutputIndexOfPc = outputIndex,
+                SoundRenames = options.SoundRenames ?? new Dictionary<string, string>(),
+                StreamedSounds = options.StreamedSounds ?? new HashSet<uint>(),
+                SwitchedSounds = options.SwitchedSounds ?? new HashSet<uint>(),
+            };
+            var converters = new List<IT7AssetConverter>(Converters);
+            var donor = new T7DonorConverter(options.DonorFallbackForAllTypes
+                ? Enumerable.Range(0, T7AssetTypes.Count)
+                : [T7AssetTypes.TechniqueSet, T7AssetTypes.ComputeShaderSet]);
+            converters.Add(donor);
+            context.Converters = converters;
+            context.Fidelity = _fidelity;
+            context.ShaderLibrary = options.ShaderLibrary;
+            context.ShaderLibrary?.AddZone(pc);
+            context.ShaderCompiler = options.ShaderCompiler;
+            string opcodeMap = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(options.Ps4LoaderDirectory))!, "t7_gsc", "gsc_opcodes.json");
+            if (File.Exists(opcodeMap))
+                context.Gsc = Scripts.T7Gsc.Load(opcodeMap);
+            string builtins = Path.Combine(Path.GetDirectoryName(opcodeMap)!, "ps4_builtins.json");
+            if (File.Exists(builtins))
+                context.GscBuiltins = Scripts.T7GscBuiltins.Load(builtins);
+            else
+                context.Warn(T7Issues.BuiltinsUnchecked, $"{builtins} is missing: scripts calling PC-only builtins are not caught");
+            context.Acts = options.Acts != null && File.Exists(options.Acts) ? options.Acts : null;
+            context.GscRecompile = options.GscRecompile;
+            context.Fallouts.AddRange(T7TextureComboFallout.Compute(pc));
+            foreach (T7TextureComboFallout fallout in context.Fallouts)
+            {
+                builder.NullFields.UnionWith(fallout.NullFields.Select(f => (pc, f)));
+                _log($"[{_stem}] texturecombo '{fallout.Asset.Name}': {fallout.SubAssets.Count} sub-assets; " + string.Join(", ", fallout.Counts.OrderBy(p => p.Key).Select(p => $"{p.Key} x{p.Value}")));
+            }
+            _decoded = decoded;
+            _context = context;
+            _converters = converters;
+            _outputIndex = outputIndex;
+            _fidelity?.Step(1);
+        }
+
+        public double? ShaderCost()
+        {
+            if (Ended || _context?.ShaderCompiler is not { } compiler)
+                return null;
+            if (_shaderCost == null)
+            {
+                _shaderJobs ??= T7TechsetBuilder.ShaderJobs(_context);
+                int uncompiled = T7TechsetBuilder.Uncompiled(compiler, _shaderJobs);
+                _shaderCost = 1 + _shaderJobs.Count * 0.002 + uncompiled * 4.0 / Math.Max(1, Environment.ProcessorCount / 2);
+            }
+            return _shaderCost;
+        }
+
+        public void Shaders()
+        {
+            if (Ended || _context?.ShaderCompiler == null)
+                return;
+            _fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "shaders"), "Compiling shaders", $"{_zoneFile} · finding shader programs");
+            _shaderJobs ??= T7TechsetBuilder.ShaderJobs(_context);
+            T7TechsetBuilder.Precompile(_context, _shaderJobs, message => _log($"[{_stem}] {message}"), _fidelity == null ? null
+                : (done, total) => _fidelity.Step((double)done / total, $"{_zoneFile} · {T7Fidelity.Of(done, total)} shader programs"));
+            _shaderJobs = null;
+            _fidelity?.Step(1);
+        }
+
+        public void Streams()
+        {
+            if (Ended || _context == null || _streamed)
+                return;
+            _streamed = true;
+            ConvertStreams(options, _context, _converters, _stem);
+            if (options.SharedStreams != null)
+            {
+                _context.Streams.Merge(options.SharedStreams);
+                options.SharedStreams.Merge(_context.Streams);
             }
         }
-        foreach (string warning in context.Warnings.Take(40))
-            log($"[{stem}] warning: {warning}");
-        string problemReport = Workspace.ReportPath(stem, ".problems.txt");
-        File.Delete(problemReport);
-        if (problems.Count > 0)
+
+        public void Assets()
         {
-            foreach (string problem in problems.Take(60))
-                log($"[{stem}] {problem}");
-            File.WriteAllLines(problemReport, problems);
-            log($"[{stem}] {problems.Count} problems; the full list is in {problemReport}");
-            ReportProblems(fidelity, stem, problems, $"{problems.Count} assets could not be converted, so {zoneFile} was not written");
-            fidelity?.ZoneNotWritten();
-            return new T7ZonePortResult(false, options.OutputFastFile, problems, strategies);
+            if (Ended || _context == null)
+                return;
+            Streams();
+            T7PortContext context = _context;
+            T7WalkIndex pc = context.Pc;
+            int count = pc.Walk.Assets.Count;
+            options.Donors.PreferredZone = _stem;
+            var outputs = new T7OutputAsset?[count];
+            var failures = new List<(int Index, string Why)>();
+            _fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "assets"), "Converting assets", $"{_zoneFile} · {T7Fidelity.Of(0, count)}");
+            for (int i = 0; i < count; i++)
+            {
+                T7Walk.Asset asset = pc.Walk.Assets[i];
+                _fidelity?.Step((double)i / count, $"{_zoneFile} · {T7Fidelity.Of(i, count)}");
+                if (context.Fallouts.Exists(f => f.DroppedEntries.Contains(i)))
+                {
+                    _strategies["dropped (texturecombo)"] = _strategies.GetValueOrDefault("dropped (texturecombo)") + 1;
+                    _fidelity?.LeftOut(T7Issues.TextureComboLeftOut);
+                    continue;
+                }
+                if (asset.Type == T7AssetTypes.Material && asset.Name?.EndsWith("|dup", StringComparison.Ordinal) == true)
+                {
+                    _strategies["dropped (|dup material)"] = _strategies.GetValueOrDefault("dropped (|dup material)") + 1;
+                    _fidelity?.LeftOut(T7Issues.DupMaterialsLeftOut);
+                    continue;
+                }
+                var output = new T7OutputAsset { Type = asset.Type, Name = asset.Name };
+                SetHeader(pc, i, output);
+                if (asset.Reads.Count == 0 && asset.Deferred.Count == 0)
+                {
+                    long cell = pc.List.AssetTableOffset + 16L * i + 8;
+                    if (pc.TryReferencedName(cell, out int referencedType, out string referencedName) && referencedType == T7AssetTypes.Material
+                        && referencedName.EndsWith("|dup", StringComparison.Ordinal))
+                    {
+                        _strategies["dropped (|dup material)"] = _strategies.GetValueOrDefault("dropped (|dup material)") + 1;
+                        _fidelity?.LeftOut(T7Issues.DupMaterialsLeftOut);
+                        continue;
+                    }
+                    _fidelity?.BeginAsset(asset);
+                    if (TryRehome(context, cell, output, out string? rehomeProblem))
+                    {
+                        _strategies["re-homed from texturecombo"] = _strategies.GetValueOrDefault("re-homed from texturecombo") + 1;
+                        outputs[i] = output;
+                        _fidelity?.EndAsset(asset, "re-homed", null);
+                        continue;
+                    }
+                    if (rehomeProblem != null)
+                    {
+                        failures.Add((i, rehomeProblem));
+                        _fidelity?.EndAsset(asset, null, rehomeProblem);
+                        continue;
+                    }
+                    _fidelity?.AbandonAsset();
+                    output.Origin = "reference";
+                    outputs[i] = output;
+                    _strategies["reference"] = _strategies.GetValueOrDefault("reference") + 1;
+                    continue;
+                }
+                var reasons = new List<string>();
+                bool done = false;
+                _fidelity?.BeginAsset(asset);
+                foreach (IT7AssetConverter converter in _converters)
+                {
+                    bool converted;
+                    string? why;
+                    try
+                    {
+                        converted = converter.TryConvert(context, asset, output, out why);
+                    }
+                    catch (Exception error) when (error is not (OutOfMemoryException or StackOverflowException))
+                    {
+                        converted = false;
+                        why = $"{error.GetType().Name}: {error.Message}";
+                    }
+                    if (converted)
+                    {
+                        if (string.IsNullOrEmpty(output.Origin))
+                            output.Origin = converter.Name;
+                        string key = $"{T7AssetTypes.Name(asset.Type)}:{converter.Name}";
+                        _strategies[key] = _strategies.GetValueOrDefault(key) + 1;
+                        done = true;
+                        _fidelity?.EndAsset(asset, converter.Name, null);
+                        break;
+                    }
+                    output.Main.Clear();
+                    output.Deferred.Clear();
+                    _fidelity?.DiscardAssetIssues();
+                    foreach (string key in context.StringPools.Where(p => p.Value == i).Select(p => p.Key).ToList())
+                        context.StringPools.Remove(key);
+                    if (why != null && converter is not T7CopyConverter)
+                        reasons.Add($"{converter.Name}: {why}");
+                }
+                if (done)
+                {
+                    outputs[i] = output;
+                }
+                else
+                {
+                    string why = reasons.Count > 0 ? string.Join("; ", reasons) : $"no PC->PS4 converter for {T7AssetTypes.Name(asset.Type)} assets yet";
+                    failures.Add((i, why));
+                    _fidelity?.EndAsset(asset, null, why);
+                }
+            }
+            _fidelity?.Step(1, $"{_zoneFile} · {T7Fidelity.Of(count, count)}");
+
+            var problems = new List<string>();
+            if (failures.Count > 0)
+            {
+                HashSet<int> referenced = ReferencedAssets(pc);
+                foreach ((int index, string why) in failures)
+                {
+                    T7Walk.Asset asset = pc.Walk.Assets[index];
+                    string label = $"{T7AssetTypes.Name(asset.Type)} '{asset.Name}' (PC asset {index})";
+                    if (options.DropUnreferenced && !referenced.Contains(index))
+                        context.Warnings.Add($"dropped unreferenced {label}: {why}");
+                    else
+                        problems.Add($"cannot convert {label}: {why}");
+                }
+            }
+            foreach (string warning in context.Warnings.Take(40))
+                _log($"[{_stem}] warning: {warning}");
+            string problemReport = Workspace.ReportPath(_stem, ".problems.txt");
+            File.Delete(problemReport);
+            if (problems.Count > 0)
+            {
+                foreach (string problem in problems.Take(60))
+                    _log($"[{_stem}] {problem}");
+                File.WriteAllLines(problemReport, problems);
+                _log($"[{_stem}] {problems.Count} problems; the full list is in {problemReport}");
+                ReportProblems(_fidelity, _stem, problems, $"{problems.Count} assets could not be converted, so {_zoneFile} was not written");
+                _fidelity?.ZoneNotWritten();
+                End(false, problems);
+                return;
+            }
+
+            int next = 0;
+            for (int i = 0; i < count; i++)
+                _outputIndex[i] = outputs[i] != null ? next++ : -1;
+            for (int i = 0; i < count; i++)
+            {
+                if (outputs[i] == null)
+                    continue;
+                context.Builder.Assets.Add(outputs[i]!);
+                context.Builder.MapAsset(pc, i, _outputIndex[i]);
+            }
+            RemapDonors(context.Builder, pc, outputs, _outputIndex, options.Donors);
+            _outputs = outputs;
+            _assembled = true;
         }
 
-        int next = 0;
-        for (int i = 0; i < count; i++)
-            outputIndex[i] = outputs[i] != null ? next++ : -1;
-        for (int i = 0; i < count; i++)
+        public void Link()
         {
-            if (outputs[i] == null)
-                continue;
-            builder.Assets.Add(outputs[i]!);
-            builder.MapAsset(pc, i, outputIndex[i]);
+            if (Ended || _context == null || _decoded == null || !_assembled)
+                return;
+            T7PortContext context = _context;
+            T7WalkIndex pc = context.Pc;
+            T7FastFile.Decoded decoded = _decoded;
+            T7OutputAsset?[] outputs = _outputs;
+            string problemReport = Workspace.ReportPath(_stem, ".problems.txt");
+            _fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "link"), "Linking and checking", $"{_zoneFile} with the PS4 game's loader");
+            var linker = new T7Linker(options.Ps4LoaderDirectory, options.WorkDirectory, _log)
+            {
+                Progress = _fidelity == null ? null : (fraction, step) => _fidelity.Step(fraction, $"{_zoneFile} · {step}"),
+            };
+            T7Linker.Result linked;
+            try
+            {
+                linked = linker.Build(context.Builder, decoded.Header, decoded.Header.ZoneName, options.OutputFastFile);
+            }
+            catch (InvalidDataException error)
+            {
+                var copied = outputs.Where(o => o != null && o.Origin is "copy" or "misc" && T7CopyConverter.LoaderCheckedTypes.Contains(o.Type))
+                    .Select(o => T7AssetTypes.Name(o!.Type)).Distinct().Order().ToList();
+                string problem = $"the PS4 loader could not read the converted zone: {error.Message}"
+                    + (copied.Count > 0 ? $" (it copies {string.Join(", ", copied)} assets, whose PS4 layout no sample confirms)" : "");
+                _log($"[{_stem}] {problem}");
+                File.WriteAllLines(problemReport, [problem]);
+                Stop(problem);
+                return;
+            }
+            var problems = new List<string>();
+            problems.AddRange(linked.Problems);
+            problems.AddRange(CheckCopiedAssets(pc, linked.FinalWalk, outputs, _outputIndex));
+            int staleKeys = CountStaleStreamKeys(linked.Zone, context.Streams);
+            if (staleKeys > 0)
+                problems.Add($"{staleKeys} PC stream keys are still in the zone (their items changed on PS4; the owning assets' converters must write the PS4 keys)");
+            if (problems.Count > 0)
+                ReportProblems(_fidelity, _stem, problems, $"{_zoneFile} was written but failed {problems.Count} checks");
+            string report = Workspace.ReportPath(_stem, ".port.json");
+            File.WriteAllText(report, JsonSerializer.Serialize(new
+            {
+                source = options.PcFastFile,
+                output = options.OutputFastFile,
+                assets = context.Builder.Assets.Count,
+                dropped = context.Warnings,
+                strategies = _strategies,
+                problems,
+                zone_bytes = linked.Zone.Length,
+                ps4_walk_passed = linked.FinalWalk.FinalFilePos == linked.Zone.Length,
+            }, new JsonSerializerOptions { WriteIndented = true }));
+            if (problems.Count > 0)
+                File.WriteAllLines(problemReport, problems);
+            _log($"[{_stem}] wrote {options.OutputFastFile} ({linked.FastFile.Length} bytes); {problems.Count} problems");
+            End(problems.Count == 0, problems);
         }
-        RemapDonors(builder, pc, outputs, outputIndex, options.Donors);
 
-        fidelity?.Enter(T7Fidelity.ZonePhase(options.PcFastFile, "link"), "Linking and checking", $"{zoneFile} with the PS4 game's loader");
-        var linker = new T7Linker(options.Ps4LoaderDirectory, options.WorkDirectory, log)
+        private void Stop(string problem)
         {
-            Progress = fidelity == null ? null : (fraction, step) => fidelity.Step(fraction, $"{zoneFile} · {step}"),
-        };
-        T7Linker.Result linked;
-        try
-        {
-            linked = linker.Build(builder, decoded.Header, decoded.Header.ZoneName, options.OutputFastFile);
+            _fidelity?.Tracker.Problem($"{_stem}: {problem}");
+            _fidelity?.ZoneNotWritten();
+            End(false, [problem]);
         }
-        catch (InvalidDataException error)
+
+        private void End(bool success, IReadOnlyList<string> problems)
         {
-            var copied = outputs.Where(o => o != null && o.Origin is "copy" or "misc" && T7CopyConverter.LoaderCheckedTypes.Contains(o.Type))
-                .Select(o => T7AssetTypes.Name(o!.Type)).Distinct().Order().ToList();
-            string problem = $"the PS4 loader could not read the converted zone: {error.Message}"
-                + (copied.Count > 0 ? $" (it copies {string.Join(", ", copied)} assets, whose PS4 layout no sample confirms)" : "");
-            log($"[{stem}] {problem}");
-            File.WriteAllLines(problemReport, [problem]);
-            fidelity?.Tracker.Problem($"{stem}: {problem}");
-            fidelity?.ZoneNotWritten();
-            return new T7ZonePortResult(false, options.OutputFastFile, [problem], strategies);
+            Result = new T7ZonePortResult(success, options.OutputFastFile, problems, _strategies);
+            _decoded = null;
+            _context = null;
+            _converters = [];
+            _outputIndex = [];
+            _outputs = [];
+            _shaderJobs = null;
         }
-        problems.AddRange(linked.Problems);
-        problems.AddRange(CheckCopiedAssets(pc, linked.FinalWalk, outputs, outputIndex));
-        int staleKeys = CountStaleStreamKeys(linked.Zone, context.Streams);
-        if (staleKeys > 0)
-            problems.Add($"{staleKeys} PC stream keys are still in the zone (their items changed on PS4; the owning assets' converters must write the PS4 keys)");
-        if (problems.Count > 0)
-            ReportProblems(fidelity, stem, problems, $"{zoneFile} was written but failed {problems.Count} checks");
-        string report = Workspace.ReportPath(stem, ".port.json");
-        File.WriteAllText(report, JsonSerializer.Serialize(new
-        {
-            source = options.PcFastFile,
-            output = options.OutputFastFile,
-            assets = builder.Assets.Count,
-            dropped = context.Warnings,
-            strategies,
-            problems,
-            zone_bytes = linked.Zone.Length,
-            ps4_walk_passed = linked.FinalWalk.FinalFilePos == linked.Zone.Length,
-        }, new JsonSerializerOptions { WriteIndented = true }));
-        if (problems.Count > 0)
-            File.WriteAllLines(problemReport, problems);
-        log($"[{stem}] wrote {options.OutputFastFile} ({linked.FastFile.Length} bytes); {problems.Count} problems");
-        return new T7ZonePortResult(problems.Count == 0, options.OutputFastFile, problems, strategies);
     }
 
-    private static void ReportProblems(T7Fidelity? fidelity, string stem, List<string> problems, string summary) =>
+    private static T7Walk? ReadReusedWalk(string path)
+    {
+        if (!File.Exists(path))
+            return null;
+        try
+        {
+            return T7Walk.Read(path);
+        }
+        catch (Exception error) when (error is InvalidDataException or IOException or ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+    }
+
+    private static void ReportProblems(T7Fidelity? fidelity, string stem, List<string> problems, string summary)
+    {
         fidelity?.Tracker.Problem($"{stem}: {summary}");
+        fidelity?.Fail();
+    }
 
     private static void ConvertStreams(T7ZonePortOptions options, T7PortContext context, List<IT7AssetConverter> converters, string stem)
     {
@@ -368,6 +505,8 @@ public static class T7ZonePort
         result.Map.Save(Path.Combine(options.WorkDirectory, stem + ".keys.json"));
         foreach ((string what, int count) in result.Counts.OrderBy(p => p.Key))
             options.Log($"[{stem}]   {what} x{count}");
+        foreach ((string type, int count) in result.KeyMatches.OrderBy(p => p.Key))
+            options.Log($"[{stem}]   {type}: matches the PS4 key the map carries x{count}");
         foreach (IGrouping<string, string> group in result.Warnings.GroupBy(w => w.Contains("another xpak") ? "external" : w.Contains("unchanged") ? "unchanged" : "other"))
             context.Warnings.Add($"streams ({group.Key}): {group.Count()} items, e.g. {group.First()}");
         fidelity?.Streams(result, plan);

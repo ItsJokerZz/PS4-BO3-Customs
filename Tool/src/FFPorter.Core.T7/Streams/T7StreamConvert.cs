@@ -22,6 +22,7 @@ public sealed class T7StreamPlan
 
 
     private readonly Dictionary<(string Type, string Name, long Size), (T7PayloadTransform Transform, string Signature)> _named = [];
+    private readonly Dictionary<(string Type, string Name), List<(long Size, T7PayloadTransform Transform, string Signature)>> _anySize = [];
     private readonly Dictionary<(string Type, long Size), (T7PayloadTransform Transform, string Signature, bool Ambiguous)> _shapes = [];
 
     public void RegisterNamed(string? type, string? name, long size, T7PayloadTransform transform, string signature, bool byShape = false)
@@ -29,7 +30,12 @@ public sealed class T7StreamPlan
         if (type is not { Length: > 0 })
             return;
         if (name is { Length: > 0 })
+        {
             _named[(type, name, size)] = (transform, signature);
+            if (!_anySize.TryGetValue((type, name), out var sizes))
+                _anySize[(type, name)] = sizes = [];
+            sizes.Add((size, transform, signature));
+        }
         if (!byShape)
             return;
         _shapes[(type, size)] = _shapes.TryGetValue((type, size), out var shape) && shape.Signature != signature
@@ -47,10 +53,21 @@ public sealed class T7StreamPlan
             transform = entry.Transform;
             return true;
         }
-        if (!_shapes.TryGetValue((type, size), out var shape) || shape.Ambiguous)
-            return false;
-        transform = shape.Transform;
-        return true;
+        if (_shapes.TryGetValue((type, size), out var shape) && !shape.Ambiguous)
+        {
+            transform = shape.Transform;
+            return true;
+        }
+        if (name is { Length: > 0 } && _anySize.TryGetValue((type, name), out var sizes))
+        {
+            var fits = sizes.Where(s => s.Size > 0 && size > s.Size && size % s.Size == 0).ToList();
+            if (fits.Count > 0 && fits.Select(s => s.Signature).Distinct().Count() == 1)
+            {
+                transform = fits[0].Transform;
+                return true;
+            }
+        }
+        return false;
     }
 
     public string? OwnerOf(ulong pcKey) => _owners.GetValueOrDefault(pcKey);
@@ -281,11 +298,12 @@ public sealed class T7StreamConvertOptions
     public Action<int, int>? Progress { get; init; }
 }
 
-public sealed record T7StreamConvertResult(T7StreamMap Map, IReadOnlyDictionary<string, int> Counts, IReadOnlyList<string> Warnings);
+public sealed record T7StreamConvertResult(T7StreamMap Map, IReadOnlyDictionary<string, int> Counts, IReadOnlyList<string> Warnings,
+    IReadOnlyDictionary<string, int> KeyMatches);
 
 public static class T7StreamConvert
 {
-    public const string RulesVersion = "t7-streams-8";
+    public const string RulesVersion = "t7-streams-10";
 
     public static T7StreamConvertResult Run(T7StreamConvertOptions options)
     {
@@ -315,7 +333,8 @@ public static class T7StreamConvert
         RulesVersion, Stamp(options.PcXPak), Stamp(options.PcIndexXPak), options.OutputIndexXPak ?? "-", options.Plan.Signature(), options.Ps4Index?.Signature ?? "-",
         options.PcSource?.Signature ?? "-", options.KnownItems?.Signature() ?? "-"))));
 
-    private sealed record CacheFile(string Signature, string Output, string? IndexOutput, List<CacheItem> Items, Dictionary<string, int> Counts, List<string> Warnings);
+    private sealed record CacheFile(string Signature, string Output, string? IndexOutput, List<CacheItem> Items, Dictionary<string, int> Counts, List<string> Warnings,
+        Dictionary<string, int>? KeyMatches);
 
     private sealed record CacheItem(ulong Pc, ulong Ps4, long PcSize, long Ps4Size, string Type, string? Name, string Source, List<long>? Parts);
 
@@ -333,7 +352,7 @@ public static class T7StreamConvert
             var map = new T7StreamMap();
             foreach (CacheItem item in cache.Items)
                 map.Add(new T7StreamMap.Item(item.Pc, item.Ps4, item.PcSize, item.Ps4Size, item.Type, item.Name, item.Source, item.Parts));
-            result = new T7StreamConvertResult(map, cache.Counts, cache.Warnings);
+            result = new T7StreamConvertResult(map, cache.Counts, cache.Warnings, cache.KeyMatches ?? []);
             return true;
         }
         catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException or NotSupportedException)
@@ -348,7 +367,7 @@ public static class T7StreamConvert
         {
             var items = result.Map.Items.Select(i => new CacheItem(i.PcKey, i.Ps4Key, i.PcSize, i.Ps4Size, i.Type, i.Name, i.Source, i.Ps4PartSizes?.ToList())).ToList();
             var cache = new CacheFile(signature, Stamp(options.OutputXPak), options.OutputIndexXPak == null ? null : Stamp(options.OutputIndexXPak),
-                items, new Dictionary<string, int>(result.Counts), [.. result.Warnings]);
+                items, new Dictionary<string, int>(result.Counts), [.. result.Warnings], new Dictionary<string, int>(result.KeyMatches));
             File.WriteAllText(path, JsonSerializer.Serialize(cache));
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
@@ -362,17 +381,14 @@ public static class T7StreamConvert
         var map = new T7StreamMap();
         var counts = new Dictionary<string, int>();
         var warnings = new List<string>();
+        var keyMatches = new Dictionary<string, int>();
         void Count(string what) => counts[what] = counts.GetValueOrDefault(what) + 1;
         var texts = new Dictionary<ulong, string>();
 
-        HashSet<ulong> externalKeys = [];
+        HashSet<ulong> zoneKeys = [];
         HashSet<ulong>? inZone = null;
-        bool UsedByZone(ulong pcKey)
+        bool InZone(ulong pcKey)
         {
-            if (options.Plan.TryGet(pcKey, out _))
-                return true;
-            if (options.Zone == null)
-                return false;
             if (inZone == null)
             {
                 inZone = [];
@@ -380,17 +396,44 @@ public static class T7StreamConvert
                 for (int at = 0; at + 8 <= bytes.Length; at++)
                 {
                     ulong value = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes[at..]);
-                    if (externalKeys.Contains(value))
+                    if (zoneKeys.Contains(value))
                         inZone.Add(value);
                 }
             }
             return inZone.Contains(pcKey);
         }
+        bool UsedByZone(ulong pcKey)
+        {
+            if (options.Plan.TryGet(pcKey, out _))
+                return true;
+            if (options.Zone == null)
+                return false;
+            return InZone(pcKey);
+        }
 
         using (var pc = new XPak(options.PcXPak))
         {
             IReadOnlyDictionary<ulong, XPakIndexRecord> index = pc.Index;
-            externalKeys = [.. index.Keys.Where(k => !pc.TryFind(k, out _))];
+            int usable = 0;
+            foreach (XPak.HashEntry entry in pc.Entries)
+            {
+                if (entry.Key != 0 && entry.Size != 0)
+                    usable++;
+            }
+            if (pc.Entries.Count > 0 && usable == 0)
+            {
+                string damaged = $"{Path.GetFileName(options.PcXPak)} has no usable catalog: all {pc.Entries.Count} of its "
+                    + "entries are zeroed, so nothing stored in it can be found. The file is damaged - re-download the map. "
+                    + "Only items the zone also borrows from the base game can be converted.";
+                options.Log($"  {damaged}");
+                warnings.Add(damaged);
+            }
+            if (pc.IndexData.Count > 0 && index.Count * 2 < (long)pc.IndexData.Count)
+            {
+                options.Log($"  xpak {Path.GetFileName(options.PcXPak)}: only {index.Count} of its {pc.IndexData.Count} index records are readable, so most "
+                    + "streamed items are converted from what the zone says about them; items the zone does not describe cannot be matched by name");
+            }
+            zoneKeys = [.. index.Keys, .. pc.Entries.Select(e => e.Key)];
             string temporary = options.OutputXPak + ".partial";
             var ordered = pc.Entries.OrderBy(e => e.Offset).ToList();
             int done = 0;
@@ -398,6 +441,7 @@ public static class T7StreamConvert
             (ulong Key, byte[] Stored) ConvertItem(ulong pcKey, XPakIndexRecord? record, List<(uint LogicalOffset, byte[] Bytes)> parts, string? bundledFrom)
             {
                 long pcSize = parts.Sum(p => (long)p.Bytes.Length);
+                long logicalSize = parts.Count == 0 ? 0 : parts.Max(p => p.LogicalOffset + (long)p.Bytes.Length);
                 string type = record?.Type ?? "?";
                 List<(uint LogicalOffset, byte[] Bytes)> converted;
                 string source;
@@ -408,10 +452,15 @@ public static class T7StreamConvert
                         converted = transform(record, parts);
                         source = "zone transform";
                     }
-                    else if (options.Plan.TryGetNamed(record?.Type, record?.Name, pcSize, out T7PayloadTransform named))
+                    else if (options.Plan.TryGetNamed(record?.Type, record?.Name, logicalSize, out T7PayloadTransform named))
                     {
                         converted = named(record, parts);
                         source = "zone transform, same-named item";
+                    }
+                    else if (options.Zone != null && record?.Type is not ("image" or "SST") && !InZone(pcKey))
+                    {
+                        converted = parts;
+                        source = "unchanged (not used by the zone)";
                     }
                     else
                     {
@@ -432,9 +481,15 @@ public static class T7StreamConvert
                 byte[] payload = Concat(converted);
                 List<(uint LogicalOffset, byte[] Bytes)> pcParts = record != null ? SplitByRecord(parts, record) : parts;
                 bool derived = XPak.ComputeKey(pcParts.Select(p => p.Bytes), tag) == pcKey;
-                ulong key = derived ? XPak.ComputeKey(converted.Select(p => p.Bytes), tag) : pcKey;
+                ulong convertedKey = XPak.ComputeKey(converted.Select(p => p.Bytes), tag);
+                ulong key = derived ? convertedKey : pcKey;
                 if (!derived && !source.StartsWith("unchanged", StringComparison.Ordinal))
-                    warnings.Add($"{type} '{record?.Name}' ({pcKey:x16}) has a key that is not its payload hash; the PC key is kept");
+                {
+                    if (convertedKey == pcKey)
+                        keyMatches[type] = keyMatches.GetValueOrDefault(type) + 1;
+                    else
+                        warnings.Add($"{type} '{record?.Name}' ({pcKey:x16}) has a key that is not its payload hash; the PC key is kept");
+                }
                 List<(long Offset, long Size)> ps4Parts = converted.Select(p => ((long)p.LogicalOffset, (long)p.Bytes.Length)).ToList();
                 if (record != null)
                     texts[key] = record.WithParts(ps4Parts);
@@ -526,7 +581,7 @@ public static class T7StreamConvert
             XPakWriter.Write(temporary, [], records);
             File.Move(temporary, options.OutputIndexXPak, overwrite: true);
         }
-        return new T7StreamConvertResult(map, counts, warnings);
+        return new T7StreamConvertResult(map, counts, warnings, keyMatches);
 
         (ulong Key, string Text) Record(ulong pcKey, XPakIndexRecord record)
         {

@@ -18,6 +18,12 @@ public sealed class T7Edition : Edition
     public override void PrepareTools(Action<string> log) =>
         Core.T7.Scripts.ActsInstall.Ensure(Core.Workspace.Locate(), log);
 
+    public override IReadOnlyList<string> CacheFolders()
+    {
+        string work = Core.T7.T7Paths.Work(Core.Workspace.Locate());
+        return Directory.Exists(work) ? Directory.GetDirectories(work) : [];
+    }
+
     public override bool TryGameFolder(string chosen, out string? folder)
     {
         folder = null;

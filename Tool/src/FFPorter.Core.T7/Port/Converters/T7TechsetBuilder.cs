@@ -17,7 +17,7 @@ public static class T7TechsetBuilder
 
     private const int KindConstant = 4, KindCodeTexture = 5;
 
-    private static readonly HashSet<uint> Ps4AbsentCodeTextures = [0x47, 0x48, 0x49, 0x4A];
+    private static readonly HashSet<uint> Ps4AbsentCodeTextures = [0x47, 0x48, 0x49, 0x4A, 0x63, 0x64];
 
     private const uint VisibleDecalsCodeTexture = 0x53;
 
@@ -32,12 +32,24 @@ public static class T7TechsetBuilder
         [27] = ("SHARD_INDEX", 0), [28] = ("BLENDWEIGHT", 0), [29] = ("BLENDINDICES", 0),
     };
 
-    public static void Precompile(T7PortContext context, Action<string> log)
+    public sealed record ShaderJob(string Stage, byte[] Dxbc, IReadOnlyDictionary<int, int>? Textures, IReadOnlyDictionary<int, int>? Samplers,
+        IReadOnlySet<int> AbsentTextures, string? SetName, int Technique)
     {
+        private T7PassTargets? Targets => Stage == "ps" ? T7PassTargets.For(SetName, Technique) : null;
+
+        public void Run(T7ShaderCompiler compiler) =>
+            compiler.Compile(Stage, Dxbc, Textures, Samplers, AbsentTextures, T7GlobalsLayout.Kept(SetName, Technique, Stage), Targets);
+
+        public string CacheFolder(T7ShaderCompiler compiler) =>
+            compiler.CacheFolder(Stage, Dxbc, Textures, Samplers, AbsentTextures, T7GlobalsLayout.Kept(SetName, Technique, Stage), Targets);
+    }
+
+    public static List<ShaderJob> ShaderJobs(T7PortContext context)
+    {
+        var jobs = new List<ShaderJob>();
         T7ShaderCompiler? compiler = context.ShaderCompiler;
         if (compiler == null)
-            return;
-        var jobs = new List<Action>();
+            return jobs;
         var builder = new Builder(context, null!, compiler);
         foreach (T7Walk.Asset asset in context.Pc.Walk.Assets)
         {
@@ -64,18 +76,56 @@ public static class T7TechsetBuilder
                 }
             }
         }
-        if (jobs.Count == 0)
+        return jobs;
+    }
+
+    public static int Uncompiled(T7ShaderCompiler compiler, IEnumerable<ShaderJob> jobs)
+    {
+        var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (ShaderJob job in jobs)
+        {
+            try
+            {
+                string folder = job.CacheFolder(compiler);
+                if (!T7ShaderCompiler.IsCompiled(folder))
+                    folders.Add(folder);
+            }
+            catch (Exception error) when (error is InvalidDataException or IOException or NotSupportedException)
+            {
+            }
+        }
+        return folders.Count;
+    }
+
+    public static void Precompile(T7PortContext context, IReadOnlyList<ShaderJob> jobs, Action<string> log, Action<int, int>? progress = null)
+    {
+        T7ShaderCompiler? compiler = context.ShaderCompiler;
+        if (compiler == null || jobs.Count == 0)
             return;
         int before = compiler.Compiled;
         var watch = System.Diagnostics.Stopwatch.StartNew();
+        int finished = 0;
+        var gate = new object();
+        progress?.Invoke(0, jobs.Count);
         Parallel.ForEach(jobs, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount / 2) }, job =>
         {
             try
             {
-                job();
+                job.Run(compiler);
             }
             catch (Exception error) when (error is InvalidDataException or IOException or NotSupportedException)
             {
+            }
+            Interlocked.Increment(ref finished);
+            if (progress == null || !Monitor.TryEnter(gate))
+                return;
+            try
+            {
+                progress(Volatile.Read(ref finished), jobs.Count);
+            }
+            finally
+            {
+                Monitor.Exit(gate);
             }
         });
         log($"shader programs: {jobs.Count} prepared, {compiler.Compiled - before} compiled in {watch.Elapsed.TotalSeconds:0} s");
@@ -92,9 +142,9 @@ public static class T7TechsetBuilder
     {
         private string Label => (rewrite as T7AssetRewrite)?.Label ?? "technique set";
 
-        public List<Action> CompileJobs(long header, string? setName)
+        public List<ShaderJob> CompileJobs(long header, string? setName)
         {
-            var jobs = new List<Action>();
+            var jobs = new List<ShaderJob>();
             for (int t = 0; t < 12; t++)
             {
                 long field = header + 16 + 8 * t;
@@ -111,10 +161,9 @@ public static class T7TechsetBuilder
                         ? _zone.AsSpan((int)argsAt, 16 * argCount).ToArray() : [];
                     int index = t;
                     if (StageOf(pc + 24, args, 0) is Stage vs)
-                        jobs.Add(() => compiler.Compile("vs", vs.Dxbc, vs.Textures, vs.Samplers, vs.AbsentTextures, T7GlobalsLayout.Kept(setName, index, "vs")));
+                        jobs.Add(new ShaderJob("vs", vs.Dxbc, vs.Textures, vs.Samplers, vs.AbsentTextures, setName, index));
                     if (StageOf(pc + 32, args, 1) is Stage ps)
-                        jobs.Add(() => compiler.Compile("ps", ps.Dxbc, ps.Textures, ps.Samplers, ps.AbsentTextures, T7GlobalsLayout.Kept(setName, index, "ps"),
-                            T7PassTargets.For(setName, index)));
+                        jobs.Add(new ShaderJob("ps", ps.Dxbc, ps.Textures, ps.Samplers, ps.AbsentTextures, setName, index));
                 }
             }
             return jobs;

@@ -157,6 +157,16 @@ public sealed class T7ShaderCompiler
 
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, object> _variantGates = new(StringComparer.OrdinalIgnoreCase);
 
+    public string CacheFolder(string stage, ReadOnlySpan<byte> dxbc, IReadOnlyDictionary<int, int>? textureRemap, IReadOnlyDictionary<int, int>? samplerRemap,
+        IReadOnlySet<int>? absentTextures = null, IReadOnlySet<string>? keptGlobals = null, T7PassTargets? targets = null)
+    {
+        targets = stage == "ps" ? targets ?? T7PassTargets.Plain : T7PassTargets.Plain;
+        return Path.Combine(_cache, Convert.ToHexStringLower(SHA256.HashData(dxbc))[..24], Variant(stage, textureRemap, samplerRemap, absentTextures, keptGlobals, targets));
+    }
+
+    public static bool IsCompiled(string folder) =>
+        File.Exists(Path.Combine(folder, "gnmx_header.bin")) && File.Exists(Path.Combine(folder, "gpu_code.bin")) && File.Exists(Path.Combine(folder, "globals.txt"));
+
     private static IReadOnlyList<T7Dxbc.Variable>? GlobalsReflection(ReadOnlySpan<byte> dxbc) =>
         T7Dxbc.ConstantBuffers(dxbc)?.FirstOrDefault(b => b.Name == "$Globals")?.Variables;
 
