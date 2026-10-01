@@ -1,0 +1,56 @@
+<Window x:Class="FFPorter.Desktop.FtpSettingsDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Bg.Surface}" Foreground="{DynamicResource Text.Primary}" FontFamily="Segoe UI" FontSize="13"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <StackPanel Margin="24,22,24,20">
+      <TextBlock Text="Console settings" Style="{StaticResource Text.Heading}" FontSize="15"/>
+      <TextBlock Style="{StaticResource Text.Body}" Margin="0,6,0,0" TextWrapping="Wrap"
+                 Text="Maps are installed to your console over FTP. These details are remembered on this PC."/>
+
+      <Grid Margin="0,18,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="118"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Console address" Style="{StaticResource Text.Caption}" VerticalAlignment="Center" Margin="0,0,12,8"/>
+        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="12"/>
+            <ColumnDefinition Width="92"/>
+          </Grid.ColumnDefinitions>
+          <TextBox x:Name="HostBox" ToolTip="The PS4's IP address, e.g. 192.168.1.50"/>
+          <TextBox Grid.Column="2" x:Name="PortBox" ToolTip="FTP port (GoldHEN default is 2121)"/>
+        </Grid>
+
+        <TextBlock Grid.Row="1" Text="Install folder" Style="{StaticResource Text.Caption}" VerticalAlignment="Center" Margin="0,0,12,8"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="RemoteBox" Margin="0,0,0,8" ToolTip="Where maps are installed on the console"/>
+
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" x:Name="TestText" Style="{StaticResource Text.Caption}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+      </Grid>
+    </StackPanel>
+
+    <Border Grid.Row="1" Background="{DynamicResource Bg.App}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,1,0,0" Padding="24,14">
+      <DockPanel>
+        <Button x:Name="TestButton" DockPanel.Dock="Left" Click="TestClick" MinHeight="36" Padding="14,6">
+          <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="&#xE95F;" FontSize="12" Margin="0,0,8,0"/><TextBlock Text="Test"/></StackPanel>
+        </Button>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" MinWidth="96" MinHeight="36"/>
+          <Button x:Name="SaveButton" Content="Save" Style="{StaticResource Button.Primary}" IsDefault="True" MinWidth="96" Margin="8,0,0,0" Click="SaveClick"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+  </Grid>
+</Window>

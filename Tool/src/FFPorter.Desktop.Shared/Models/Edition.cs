@@ -17,6 +17,8 @@ public abstract class Edition
 
     public abstract string Subtitle { get; }
 
+    public virtual string BrowseSubtitle => "Download already-converted custom maps and install them straight to your console over FTP.";
+
     public abstract string GameName { get; }
 
     public abstract string GameLabel { get; }
