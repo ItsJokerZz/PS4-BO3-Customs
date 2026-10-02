@@ -61,7 +61,6 @@ at the root of the drive (a `BO3-Customs/zone/` there works too). Everything els
 ```
 
 ## Building Requirements
-
 **The SPRX**
 - VS 2022
 - PS4 SDK 12.00

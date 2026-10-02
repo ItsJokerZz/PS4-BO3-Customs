@@ -36,13 +36,15 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Title = TitleText.Text = Edition.Title;
-        SubtitleText.Text = Edition.Subtitle;
         EmptyQueueText.Text = $"Maps, mods, weapons and zones from {Edition.GameName}: .ff files or whole folders.";
         ThemeManager.StyleTitleBar(this);
         JobList.ItemsSource = _jobs;
         _jobs.CollectionChanged += (_, _) => RefreshQueue();
         ShowOutput();
         ShowGameFolder();
+        Browse.Log = Log.Append;
+        ConvertNav.Checked += (_, _) => ShowSection();
+        BrowseNav.Checked += (_, _) => ShowSection();
         Loaded += (_, _) => { AskForGameFolder(); PrepareTools(); };
         DragOver += (_, e) =>
         {
@@ -58,6 +60,18 @@ public partial class MainWindow : Window
         Closing += WindowClosing;
         _clock.Tick += (_, _) => ShowProgress();
         RefreshQueue();
+        ShowSection();
+    }
+
+    private void ShowSection()
+    {
+        bool browse = BrowseNav.IsChecked == true;
+        ConvertView.Visibility = browse ? Visibility.Collapsed : Visibility.Visible;
+        BrowseView.Visibility = browse ? Visibility.Visible : Visibility.Collapsed;
+        HeaderActions.Visibility = browse ? Visibility.Collapsed : Visibility.Visible;
+        SubtitleText.Text = browse ? Edition.BrowseSubtitle : Edition.Subtitle;
+        if (browse)
+            Browse.Activate();
     }
 
 

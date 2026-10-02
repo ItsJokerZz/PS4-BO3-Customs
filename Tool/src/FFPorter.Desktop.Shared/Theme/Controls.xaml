@@ -397,6 +397,34 @@
     </Setter>
   </Style>
 
+  <Style TargetType="PasswordBox">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Foreground" Value="{DynamicResource Text.Primary}"/>
+    <Setter Property="Background" Value="{DynamicResource Bg.Input}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource Border.Default}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CaretBrush" Value="{DynamicResource Text.Primary}"/>
+    <Setter Property="SelectionBrush" Value="{DynamicResource Text.Selection}"/>
+    <Setter Property="Padding" Value="9,6"/>
+    <Setter Property="MinHeight" Value="32"/>
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="PasswordBox">
+          <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" SnapsToDevicePixels="True">
+            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource Border.Strong}"/></Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource Text.Secondary}"/></Trigger>
+            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style TargetType="ComboBox">
     <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
     <Setter Property="Foreground" Value="{DynamicResource Text.Primary}"/>
